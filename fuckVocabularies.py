@@ -8,10 +8,15 @@ import random
 import warnings
 import threading
 from tkinter import messagebox
+from tkinter import ttk
+from PIL import Image, ImageTk
+import tkinter.font as tkFont
 
 from googletrans import Translator
 
 global dictionary
+
+PASS_DOWNLOAD_PACKAGES = False
 
 def translate_text(text, dest='zh-tw'):
     translator = Translator()
@@ -31,11 +36,13 @@ def createPDF():
     print("PDF downloaded successfully!")
     
 def install(package):
+    pass
     subprocess.check_call([sys.executable, "-m", "pip", "install", package])
-packages = ["PyPDF2", "requests", "deep-translator"]
+packages = ["PyPDF2", "requests", "deep-translator", "pillow"]
 
 for package in packages:
-    pass
+    if PASS_DOWNLOAD_PACKAGES:
+        break
     if importlib.util.find_spec(package) is None:
         install(package)
 
@@ -72,12 +79,31 @@ def loadAllVocs():
             line = line.rstrip('\n').split(' ')  # Remove newline characters
             dictionary[line[1]].append(line[0])
     return dictionary
+
 class TranslationTestApp:
     def __init__(self, master):
         self.master = master
         self.master.title("English to Chinese Translation Test")
-        self.master.geometry("800x600")  # Increased window size for longer height
-        self.master.resizable(True, True)  # Allow window to be resizable
+        self.master.geometry("800x600")
+        self.master.resizable(True, True)
+        
+        # Define color scheme
+        self.bg_color = "#f0f0f0"  # Light gray
+        self.title_color = "#333333"  # Dark gray
+        self.btn_color = "#4CAF50"  # Green
+        self.correct_color = "#4CAF50"  # Green
+        self.incorrect_color = "#f44336"  # Red
+        
+        # Apply background color
+        self.master.configure(bg=self.bg_color)
+        
+        # Setup ttk styles
+        self.style = ttk.Style()
+        self.style.theme_use('clam')  # Choose a theme
+        self.style.configure('Green.TButton', background=self.btn_color, foreground='white', font=("Helvetica", 14))
+        self.style.configure('Red.TButton', background=self.incorrect_color, foreground='white', font=("Helvetica", 14))
+        self.style.configure('Correct.TButton', background=self.correct_color, foreground='white', font=("Helvetica", 14))
+        self.style.configure('Incorrect.TButton', background=self.incorrect_color, foreground='white', font=("Helvetica", 14))
         
         # Initialize variables
         self.selected_level = tk.StringVar()
@@ -86,7 +112,12 @@ class TranslationTestApp:
         self.current_word = ""
         self.current_translation = ""
         self.options = []
-        self.translations = {}  # Cache for translations
+        self.translations = {}
+        
+        # Define custom fonts
+        self.title_font = tkFont.Font(family="Helvetica", size=24, weight="bold")
+        self.word_font = tkFont.Font(family="Arial", size=24, weight="bold")
+        self.button_font = tkFont.Font(family="Helvetica", size=14)
         
         # Create Level Selection Screen
         self.create_level_selection_screen()
@@ -97,22 +128,27 @@ class TranslationTestApp:
             widget.destroy()
         
         # Title
-        title = tk.Label(self.master, text="Select a Level", font=("Helvetica", 24))
+        title = ttk.Label(
+            self.master, 
+            text="Select a Level", 
+            font=self.title_font, 
+            background=self.bg_color, 
+            foreground=self.title_color
+        )
         title.pack(pady=30, anchor='center')
         
         # Frame to hold level buttons
-        button_frame = tk.Frame(self.master)
+        button_frame = ttk.Frame(self.master)
         button_frame.pack(pady=20, fill='both', expand=True)
         
         # Arrange buttons in a grid with 2 columns
         columns = 2
         for idx, level in enumerate(sorted(dictionary.keys())):
-            btn = tk.Button(
+            btn = ttk.Button(
                 button_frame,
                 text=level,
                 width=20,
-                height=3,
-                font=("Helvetica", 14),
+                style='Green.TButton',
                 command=lambda lvl=level: self.start_quiz(lvl)
             )
             row = idx // columns
@@ -141,32 +177,42 @@ class TranslationTestApp:
             widget.destroy()
         
         # Frame for Score
-        score_frame = tk.Frame(self.master)
+        score_frame = ttk.Frame(self.master)
         score_frame.pack(pady=10)
         
-        self.score_label = tk.Label(
-            score_frame, text=f"Score: {self.score} / {self.total}", font=("Helvetica", 16)
+        self.score_label = ttk.Label(
+            score_frame, 
+            text=f"Score: {self.score} / {self.total}", 
+            font=("Helvetica", 16), 
+            background=self.bg_color, 
+            foreground=self.title_color
         )
         self.score_label.pack()
         
         # Word Label
-        self.word_label = tk.Label(
-            self.master, text="", font=("Helvetica", 20)
+        middle_frame = ttk.Frame(self.master)
+        middle_frame.pack(pady=40)
+        
+        self.word_label = ttk.Label(
+            middle_frame, 
+            text="", 
+            font=self.word_font, 
+            background=self.bg_color, 
+            foreground=self.title_color
         )
-        self.word_label.pack(pady=40)
+        self.word_label.pack()
         
         # Frame for Options
-        options_frame = tk.Frame(self.master)
+        options_frame = ttk.Frame(self.master)
         options_frame.pack(pady=20)
         
         self.option_buttons = []
         for i in range(4):
-            btn = tk.Button(
+            btn = ttk.Button(
                 options_frame,
                 text=f"Option {i+1}",
                 width=30,
-                height=2,
-                font=("Helvetica", 14),
+                style='Green.TButton',
                 command=lambda idx=i: self.check_answer(idx)
             )
             btn.grid(row=i//2, column=i%2, padx=20, pady=20, sticky='nsew')
@@ -179,11 +225,11 @@ class TranslationTestApp:
             options_frame.grid_rowconfigure(row, weight=1)
         
         # Exit Button
-        exit_btn = tk.Button(
+        exit_btn = ttk.Button(
             self.master,
             text="Exit",
             width=10,
-            font=("Helvetica", 12),
+            style='Red.TButton',
             command=self.master.quit
         )
         exit_btn.pack(pady=20)
@@ -196,6 +242,9 @@ class TranslationTestApp:
         threading.Thread(target=self.prepare_question, args=(self.current_word,), daemon=True).start()
     
     def prepare_question(self, word):
+        # Show a loading indicator (optional)
+        self.master.after(0, lambda: self.word_label.config(text="Loading...", foreground="#555555"))
+        
         # Check if the word is already translated
         if word in self.translations:
             translated = self.translations[word]
@@ -216,14 +265,28 @@ class TranslationTestApp:
     
     def display_question(self):
         # Update the word label
-        self.word_label.config(text=f"{self.current_word}")
+        self.word_label.config(
+            text=f"{self.current_word}",
+            foreground=self.title_color
+        )
         
         # Update option buttons
         for idx, option in enumerate(self.options):
-            self.option_buttons[idx].config(text=option, bg="SystemButtonFace", state=tk.NORMAL)
+            if option == "N/A":
+                display_text = "N/A"
+            else:
+                display_text = option
+            self.option_buttons[idx].config(
+                text=display_text, 
+                style='Green.TButton', 
+                state=tk.NORMAL
+            )
         
         # Update score label
-        self.score_label.config(text=f"Score: {self.score} / {self.total}")
+        self.score_label.config(
+            text=f"Score: {self.score} / {self.total}", 
+            foreground=self.title_color
+        )
     
     def get_wrong_options(self, correct_word):
         """
@@ -251,11 +314,11 @@ class TranslationTestApp:
                 translated = translate_text(word)
                 self.translations[word] = translated
             wrong_translations.append(translated)
-        
+
         # If fewer than 3 wrong options are available, fill the remaining with placeholders
         while len(wrong_translations) < 3:
             wrong_translations.append("N/A")  # Placeholder or consider alternative handling
-        
+
         return wrong_translations[:3]
     
     def check_answer(self, selected_idx):
@@ -268,20 +331,23 @@ class TranslationTestApp:
         
         if selected_option == self.current_translation:
             self.score += 1
-            self.option_buttons[selected_idx].config(bg="green")
+            self.option_buttons[selected_idx].config(style='Correct.TButton')
             messagebox.showinfo("Correct!", "Good job! That's correct.")
         else:
-            self.option_buttons[selected_idx].config(bg="red")
+            self.option_buttons[selected_idx].config(style='Incorrect.TButton')
             # Highlight the correct answer
             try:
                 correct_idx = self.options.index(self.current_translation)
-                self.option_buttons[correct_idx].config(bg="green")
+                self.option_buttons[correct_idx].config(style='Correct.TButton')
             except ValueError:
                 pass  # In case the correct translation wasn't among options
             messagebox.showinfo("Incorrect", f"Sorry, the correct translation is:\n{self.current_translation}")
         
         # Update score label
-        self.score_label.config(text=f"Score: {self.score} / {self.total}")
+        self.score_label.config(
+            text=f"Score: {self.score} / {self.total}", 
+            foreground=self.title_color
+        )
         
         # Proceed to next question after a short delay
         self.master.after(1000, self.next_question)
