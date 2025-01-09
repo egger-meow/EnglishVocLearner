@@ -11,6 +11,7 @@ from tkinter import messagebox
 from tkinter import ttk
 from PIL import Image, ImageTk
 import tkinter.font as tkFont
+import pyttsx3
 
 from googletrans import Translator
 
@@ -38,7 +39,7 @@ def createPDF():
 def install(package):
     pass
     subprocess.check_call([sys.executable, "-m", "pip", "install", package])
-packages = ["PyPDF2", "requests", "deep-translator", "pillow"]
+packages = ["PyPDF2", "requests", "deep-translator", "pillow", "pyttsx3"]
 
 for package in packages:
     if PASS_DOWNLOAD_PACKAGES:
@@ -50,6 +51,19 @@ import requests
 from PyPDF2 import PdfReader
 warnings.filterwarnings("ignore")
 
+def readWord(text):
+    engine = pyttsx3.init()
+
+    # Set properties (optional)
+    engine.setProperty('rate', 150)    # Speed percent (can go over 100)
+    engine.setProperty('volume', 0.9)  # Volume 0-1
+
+
+    # Use the engine to say the text
+    engine.say(text)
+
+    # Wait and let the speech finish
+    engine.runAndWait()
 
 def loadTXT(path = 'vocs.pdf'):
     with open(path, 'rb') as file:
@@ -269,7 +283,7 @@ class TranslationTestApp:
             text=f"{self.current_word}",
             foreground=self.title_color
         )
-        
+        readWord(self.current_word)
         # Update option buttons
         for idx, option in enumerate(self.options):
             if option == "N/A":
