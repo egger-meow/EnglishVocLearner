@@ -1,8 +1,6 @@
-// frontend/src/components/LevelSelect/LevelSelect.jsx
-
 import React, { useEffect, useState } from 'react';
 import { getLevels } from '../../services/quizService';
-import { Container, Row, Col, Button, ListGroup, Spinner } from 'react-bootstrap';
+import { Container, Row, Col, Button, Spinner } from 'react-bootstrap';
 
 export default function LevelSelect({ onLevelSelect }) {
   const [levels, setLevels] = useState([]);
@@ -27,44 +25,41 @@ export default function LevelSelect({ onLevelSelect }) {
 
   if (loading) {
     return (
-      <Container className="py-5">
-        <Row className="justify-content-center">
-          <Col md={6} className="text-center">
-            <Spinner animation="border" variant="primary" />
-            <div className="mt-3">Loading levels...</div>
-          </Col>
-        </Row>
+      <Container className="py-5 text-center">
+        <Spinner animation="border" variant="primary" />
+        <div className="mt-2">Loading levels...</div>
       </Container>
     );
   }
 
   if (error) {
     return (
-      <Container className="py-5">
-        <Row className="justify-content-center">
-          <Col md={6} className="text-center">
-            <div className="text-danger">Error: {error}</div>
-          </Col>
-        </Row>
+      <Container className="py-5 text-center">
+        <div className="text-danger">{error}</div>
       </Container>
     );
   }
 
   return (
-    <Container className="py-5">
-      <Row className="justify-content-center">
-        <Col md={6} className="text-center">
-          <h2 className="mb-4">Select a Level</h2>
+    <Container className="py-5 text-center">
+      <h2 className="mb-4">Select a Level</h2>
 
-          <ListGroup className="mb-4">
-            {levels.map((lvl) => (
-              <ListGroup.Item key={lvl} className="p-2">
-                <Button variant="primary" onClick={() => onLevelSelect(lvl)}>
-                  {lvl}
-                </Button>
-              </ListGroup.Item>
-            ))}
-          </ListGroup>
+      {/* We can stack the buttons in a single column,
+          or in multiple columns. This example uses 1 column
+          for simplicity but big, wide buttons. */}
+      <Row className="justify-content-center">
+        <Col xs={12} md={6} lg={4}>
+          {levels.map((lvl) => (
+            <Button
+              key={lvl}
+              variant="primary"
+              size="lg"
+              className="mb-3 w-100"  // 100% wide
+              onClick={() => onLevelSelect(lvl)}
+            >
+              {lvl}
+            </Button>
+          ))}
         </Col>
       </Row>
     </Container>

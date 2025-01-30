@@ -1,8 +1,13 @@
-// frontend/src/components/Quiz/Quiz.jsx
-
 import React, { useEffect, useState, useRef } from 'react';
 import { getQuestion, checkAnswer } from '../../services/quizService';
-import { Container, Row, Col, Button, Modal, Spinner } from 'react-bootstrap';
+import {
+  Container,
+  Row,
+  Col,
+  Button,
+  Modal,
+  Spinner
+} from 'react-bootstrap';
 
 export default function Quiz({ level, onBack }) {
   const [word, setWord] = useState('');
@@ -11,7 +16,7 @@ export default function Quiz({ level, onBack }) {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
 
-  // For feedback popup (modal)
+  // For modal feedback
   const [showModal, setShowModal] = useState(false);
   const [modalTitle, setModalTitle] = useState('');
   const [modalBody, setModalBody] = useState('');
@@ -19,15 +24,20 @@ export default function Quiz({ level, onBack }) {
 
   const timerRef = useRef(null);
 
+  // Cleanup any pending timer on unmount
   useEffect(() => {
     return () => {
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-      }
+      if (timerRef.current) clearTimeout(timerRef.current);
     };
   }, []);
 
-  // fetch question
+  useEffect(() => {
+    if (level) {
+      fetchNewQuestion();
+    }
+    // eslint-disable-next-line
+  }, [level]);
+
   async function fetchNewQuestion() {
     setLoading(true);
     try {
@@ -42,24 +52,17 @@ export default function Quiz({ level, onBack }) {
     }
   }
 
-  useEffect(() => {
-    if (level) {
-      fetchNewQuestion();
-    }
-    // eslint-disable-next-line
-  }, [level]);
-
-  // user picks an option
   async function handleOptionClick(option) {
     setLoading(true);
     setTotal(prev => prev + 1);
+
     try {
       const result = await checkAnswer(word, option);
       if (result.correct) {
         setScore(prev => prev + 1);
         showModalMessage(
           'Correct!',
-          `You got it right.`,
+          `good job.`,
           true
         );
       } else {
@@ -71,19 +74,19 @@ export default function Quiz({ level, onBack }) {
       }
     } catch (err) {
       console.error(err);
-      showModalMessage('Error', 'Problem checking answer.', false);
+      showModalMessage('Error', 'Problem checking your answer.', false);
     } finally {
       setLoading(false);
     }
   }
 
-  // show the feedback modal
   function showModalMessage(title, body, correct) {
     setModalTitle(title);
     setModalBody(body);
     setWasCorrect(correct);
     setShowModal(true);
 
+    // If correct, auto close after 1 second
     if (correct) {
       timerRef.current = setTimeout(() => {
         handleModalClose();
@@ -91,65 +94,91 @@ export default function Quiz({ level, onBack }) {
     }
   }
 
-  // close the modal
   function handleModalClose() {
     setShowModal(false);
     if (!wasCorrect) {
-      // user was incorrect, wait for them to click 'Close'
+      // Wait for the user to close the modal if they're incorrect
     }
     fetchNewQuestion();
   }
 
   return (
-    <Container className="py-5">
-      <Row className="justify-content-center">
-        <Col md={8} className="text-center">
-          <Button variant="secondary" onClick={onBack} className="mb-3">
-            &larr; Back to Levels
-          </Button>
+    <Container className="py-5 text-center">
+      <div className="mb-4">
+        <Button variant="secondary" onClick={onBack}>
+          &larr; Back to Levels
+        </Button>
+      </div>
 
-          <h4 className="mb-2">Level: {level}</h4>
-          <div className="text-muted mb-4">
-            Score: {score} / {total}
-          </div>
+      <h4 className="text-muted mb-2">Level: {level}</h4>
+      <p className="text-muted mb-4">
+        Score: {score} / {total}
+      </p>
 
-          {loading && (
-            <>
-              <Spinner animation="border" variant="primary" />
-              <div className="mt-3">Loading question...</div>
-            </>
-          )}
+      {loading ? (
+        <>
+          <Spinner animation="border" variant="primary" />
+          <div className="mt-2">Loading question...</div>
+        </>
+      ) : (
+        <>
+          <h1 className="display-3 mb-5">{word}</h1>
 
-          {!loading && (
-            <>
-              <h1 className="display-4 mb-4">{word}</h1>
-              {options.map((opt) => (
-                <Button
-                  key={opt}
-                  variant="success"
-                  className="d-block mx-auto mb-2"
-                  style={{ width: '200px' }}
-                  onClick={() => handleOptionClick(opt)}
-                >
-                  {opt}
-                </Button>
-              ))}
-            </>
-          )}
-        </Col>
-      </Row>
+          {/* 2 rows x 2 columns layout for exactly 4 options */}
+          <Row className="justify-content-center">
+            <Col xs={12} md={6} lg={3} className="mb-3">
+              <Button
+                variant="success"
+                size="lg"
+                className="w-100"
+                onClick={() => handleOptionClick(options[0])}
+              >
+                {options[0]}
+              </Button>
+            </Col>
+            <Col xs={12} md={6} lg={3} className="mb-3">
+              <Button
+                variant="success"
+                size="lg"
+                className="w-100"
+                onClick={() => handleOptionClick(options[1])}
+              >
+                {options[1]}
+              </Button>
+            </Col>
+          </Row>
 
-      {/* Modal for feedback */}
-      <Modal
-        show={showModal}
-        onHide={handleModalClose}
-        centered
-        backdrop="static"
-      >
+          <Row className="justify-content-center">
+            <Col xs={12} md={6} lg={3} className="mb-3">
+              <Button
+                variant="success"
+                size="lg"
+                className="w-100"
+                onClick={() => handleOptionClick(options[2])}
+              >
+                {options[2]}
+              </Button>
+            </Col>
+            <Col xs={12} md={6} lg={3} className="mb-3">
+              <Button
+                variant="success"
+                size="lg"
+                className="w-100"
+                onClick={() => handleOptionClick(options[3])}
+              >
+                {options[3]}
+              </Button>
+            </Col>
+          </Row>
+        </>
+      )}
+
+      {/* Modal feedback */}
+      <Modal show={showModal} onHide={handleModalClose} centered backdrop="static">
         <Modal.Header closeButton>
           <Modal.Title>{modalTitle}</Modal.Title>
         </Modal.Header>
-        <Modal.Body style={{ textAlign: "center" }}>{modalBody}</Modal.Body>
+        <Modal.Body>{modalBody}</Modal.Body>
         <Modal.Footer>
           {!wasCorrect && (
             <Button variant="primary" onClick={handleModalClose}>
