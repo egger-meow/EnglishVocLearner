@@ -9,21 +9,26 @@ import warnings
 import threading
 from tkinter import messagebox
 from tkinter import ttk
-from PIL import Image, ImageTk
 import tkinter.font as tkFont
-import pyttsx3
 
-from googletrans import Translator
 
 global dictionary
 
 PASS_DOWNLOAD_PACKAGES = False
 
-def translate_text(text, dest='zh-tw'):
-    translator = Translator()
-    translation = translator.translate(text, dest=dest)
-    return translation.text
+import re
+from deep_translator import GoogleTranslator
 
+def translate_text(text, dest='zh-TW'):
+    """
+    Translates text to Traditional Chinese using deep-translator
+    """
+    try:
+        translator = GoogleTranslator(target=dest)
+        translation = translator.translate(text)
+        return translation
+    except Exception as e:
+        raise Exception(f"Translation error: {str(e)}")
 def createPDF():
     # Specify the URL of the PDF
     url = "https://www.ceec.edu.tw/SourceUse/ce37/5.pdf"
@@ -39,7 +44,7 @@ def createPDF():
 def install(package):
     pass
     subprocess.check_call([sys.executable, "-m", "pip", "install", package])
-packages = ["PyPDF2", "requests", "deep-translator", "pillow", "pyttsx3"]
+packages = ["PyPDF2", "requests", "deep-translator", "pillow", "pyttsx3" , "googletrans"] 
 
 for package in packages:
     if PASS_DOWNLOAD_PACKAGES:
@@ -47,7 +52,9 @@ for package in packages:
     if importlib.util.find_spec(package) is None:
         install(package)
 
+import pyttsx3
 import requests
+from PIL import Image, ImageTk
 from PyPDF2 import PdfReader
 warnings.filterwarnings("ignore")
 
