@@ -12,6 +12,7 @@ import {
 } from 'react-bootstrap';
 import { MistakesContext } from '../../context/MistakesContext';
 import { StatsContext } from '../../context/StatsContext';
+import './Quiz.css'; // Import the CSS file
 
 export default function Quiz({ level, onBack }) {
   const [word, setWord] = useState('');
@@ -144,7 +145,7 @@ export default function Quiz({ level, onBack }) {
         </>
       ) : (
         <>
-          <h1 className="display-3 mb-5">{word}</h1>
+          <h1 className="display-3 mb-5 fade-in-text">{word}</h1>
 
           {/* 2 rows x 2 columns layout for exactly 4 options */}
           <Row className="justify-content-center">
