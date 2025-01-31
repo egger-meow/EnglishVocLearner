@@ -1,4 +1,6 @@
-import React, { useEffect, useState, useRef } from 'react';
+// frontend/src/components/Quiz/Quiz.jsx
+
+import React, { useEffect, useState, useRef, useContext } from 'react';
 import { getQuestion, checkAnswer } from '../../services/quizService';
 import {
   Container,
@@ -8,13 +10,16 @@ import {
   Modal,
   Spinner
 } from 'react-bootstrap';
+import { MistakesContext } from '../../context/MistakesContext';
+import { StatsContext } from '../../context/StatsContext';
 
 export default function Quiz({ level, onBack }) {
   const [word, setWord] = useState('');
   const [options, setOptions] = useState([]);
-  const [score, setScore] = useState(0);
-  const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
+
+  // Track start time so we can measure how long the user took
+  const [questionStart, setQuestionStart] = useState(null);
 
   // For modal feedback
   const [showModal, setShowModal] = useState(false);
@@ -24,17 +29,17 @@ export default function Quiz({ level, onBack }) {
 
   const timerRef = useRef(null);
 
-  // Cleanup any pending timer on unmount
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-    };
-  }, []);
-
+  const { addMistake } = useContext(MistakesContext);
+  const { recordAnswer, getCorrectionRate, getGlobalAverageTime, getAttempted } = useContext(StatsContext);
+  const globalAvg = getGlobalAverageTime().toFixed(2);
+  // On mount or when level changes, fetch first question
   useEffect(() => {
     if (level) {
       fetchNewQuestion();
     }
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
     // eslint-disable-next-line
   }, [level]);
 
@@ -44,6 +49,9 @@ export default function Quiz({ level, onBack }) {
       const data = await getQuestion(level);
       setWord(data.word);
       setOptions(data.options);
+
+      // Mark the start time for this question
+      setQuestionStart(Date.now());
     } catch (err) {
       console.error(err);
       showModalMessage('Error', 'Failed to load question.', false);
@@ -54,24 +62,34 @@ export default function Quiz({ level, onBack }) {
 
   async function handleOptionClick(option) {
     setLoading(true);
-    setTotal(prev => prev + 1);
 
     try {
       const result = await checkAnswer(word, option);
+
+      // Calculate how many seconds user took
+      const now = Date.now();
+      const timeSpentSec = questionStart
+        ? (now - questionStart) / 1000
+        : 0;
+
       if (result.correct) {
-        setScore(prev => prev + 1);
-        showModalMessage(
-          'Correct!',
-          `good job.`,
-          true
-        );
+        setWasCorrect(true);
+        showModalMessage('Correct!', `good job.`, true);
       } else {
+        // Record mistake in MistakesContext
+        addMistake(word, result.correctTranslation, level);
+
+        setWasCorrect(false);
         showModalMessage(
           'Incorrect',
           `Correct translation for "${word}" is "${result.correctTranslation}".`,
           false
         );
       }
+
+      // Record the attempt in StatsContext
+      recordAnswer(level, result.correct, timeSpentSec);
+
     } catch (err) {
       console.error(err);
       showModalMessage('Error', 'Problem checking your answer.', false);
@@ -86,7 +104,7 @@ export default function Quiz({ level, onBack }) {
     setWasCorrect(correct);
     setShowModal(true);
 
-    // If correct, auto close after 1 second
+    // If correct, auto close after 0.7 second
     if (correct) {
       timerRef.current = setTimeout(() => {
         handleModalClose();
@@ -97,22 +115,26 @@ export default function Quiz({ level, onBack }) {
   function handleModalClose() {
     setShowModal(false);
     if (!wasCorrect) {
-      // Wait for the user to close the modal if they're incorrect
+      // Wait for user to close if incorrect
     }
     fetchNewQuestion();
   }
+
+  // Now we read the correctionRate for this level from StatsContext
+  const correctionRate = getCorrectionRate(level); // e.g. 75 if 3/4
+  const attempts = getAttempted(level);
 
   return (
     <Container className="py-5 text-center">
       <div className="mb-4">
         <Button variant="secondary" onClick={onBack}>
-          &larr; Back to Levels
+          &larr; 選擇其他難度
         </Button>
       </div>
 
-      <h4 className="text-muted mb-2">Level: {level}</h4>
+      <h4 className="text-muted mb-2">{level}</h4>
       <p className="text-muted mb-4">
-        Score: {score} / {total}
+        正確率: {correctionRate.toFixed(1)}%  答題數: {attempts}
       </p>
 
       {loading ? (
@@ -170,6 +192,9 @@ export default function Quiz({ level, onBack }) {
               </Button>
             </Col>
           </Row>
+          <div className="mt-4 text-muted" style={{ fontSize: "0.8rem" }}>
+            平均答題時間: {globalAvg} s
+          </div> 
         </>
       )}
 

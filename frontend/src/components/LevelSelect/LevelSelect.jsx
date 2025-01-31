@@ -42,7 +42,7 @@ export default function LevelSelect({ onLevelSelect }) {
 
   return (
     <Container className="py-5 text-center">
-      <h2 className="mb-4">Select a Level</h2>
+      <h2 className="mb-4">選擇單字難度</h2>
 
       {/* We can stack the buttons in a single column,
           or in multiple columns. This example uses 1 column
