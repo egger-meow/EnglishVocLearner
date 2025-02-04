@@ -4,3 +4,4 @@ PyPDF2==3.0.1
 deep_translator
 pyttsx3==2.90
 gunicorn
+werkzeug==2.0.3
