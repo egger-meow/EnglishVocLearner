@@ -4,12 +4,17 @@ import random
 from flask import Blueprint, request, jsonify
 from app.services.vocabulary import load_all_vocs, download_vocs
 from app.services.translation import translate_text
+import re
+
 
 quiz_bp = Blueprint('quiz_bp', __name__)
 
 # A simple in-memory cache for translations & dictionary
 translations_cache = {}
 dictionary = {}
+
+def remove_symbols(s):
+    return re.sub(r'^[^\w]+|[^\w]+$', '', s)
 
 def init_vocabulary():
     """
@@ -55,8 +60,8 @@ def get_question(level):
         return jsonify({'error': 'Not enough words in this level to generate options.'}), 400
     
     # Pick a random word
-    word = random.choice(dictionary[level])
-    
+    word = remove_symbols(random.choice(dictionary[level]))
+
     # Translate the correct word (cached if possible)
     correct_translation = translations_cache.get(word)
     if not correct_translation:
@@ -69,7 +74,7 @@ def get_question(level):
     # Prepare 3 random wrong translations
     wrong_words = [w for w in dictionary[level] if w != word]
     random.shuffle(wrong_words)
-    wrong_words = wrong_words[:3]
+    wrong_words = list(map(remove_symbols, wrong_words[:3]))
 
     # Translate wrong words
     wrong_translations = []

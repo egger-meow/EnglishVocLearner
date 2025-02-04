@@ -18,7 +18,13 @@ import './Quiz.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faVolumeHigh } from '@fortawesome/free-solid-svg-icons';
 
-export default function Quiz({ level, onBack }) {
+/**
+ * Props:
+ *  - level: string (e.g. "LEVEL1")
+ *  - mode: { type: 'endless' } or { type: 'fixed', count: number }
+ *  - onBack: function
+ */
+export default function Quiz({ level, mode = { type: 'endless' }, onBack }) {
   const [word, setWord] = useState('');
   const [options, setOptions] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -34,55 +40,48 @@ export default function Quiz({ level, onBack }) {
 
   const timerRef = useRef(null);
 
+  // ============= NEW OR CHANGED =============
+  // Track # answered + # correct in this *quiz session*
+  const [questionsAnswered, setQuestionsAnswered] = useState(0);
+  const [correctCount, setCorrectCount] = useState(0);
+  // =========================================
+
   const { addMistake } = useContext(MistakesContext);
   const { recordAnswer, getCorrectionRate, getGlobalAverageTime, getAttempted } = useContext(StatsContext);
   const globalAvg = getGlobalAverageTime().toFixed(2);
-  // On mount or when level changes, fetch first question
 
   function speakWord() {
     if (!word) return;
-  
     const utterance = new SpeechSynthesisUtterance(word);
-    
-    // Force English pronunciation
-    utterance.lang = 'en-US'; // or 'en-GB' for British English
-    
-    // Find an English voice
+    utterance.lang = 'en-US';
     const voices = window.speechSynthesis.getVoices();
-    const englishVoice = voices.find(voice => 
-      voice.lang.startsWith('en') || 
-      voice.name.includes('English')
+    const englishVoice = voices.find((voice) =>
+      voice.lang.startsWith('en') || voice.name.includes('English')
     );
-  
     if (englishVoice) {
       utterance.voice = englishVoice;
-      utterance.lang = englishVoice.lang; // Sync language with voice
+      utterance.lang = englishVoice.lang;
     }
-  
-    // Optional: Adjust speech parameters
-    utterance.rate = 1.0; // Normal speed
-    utterance.pitch = 1.0; // Neutral pitch
-    utterance.volume = 1.0; // Full volume
-  
+    utterance.rate = 1.0;
+    utterance.pitch = 0.5;
+    utterance.volume = 1.0;
     window.speechSynthesis.cancel();
     window.speechSynthesis.speak(utterance);
   }
 
+  function removeSymbols(str) {
+    return str.replace(/^[^\w]+|[^\w]+$/g, '');
+  }
+
   useEffect(() => {
     if (typeof window !== 'undefined' && window.speechSynthesis) {
-      // Load voices and handle voice changes
-      const handleVoicesChanged = () => {
-        // Optional: Store voices in state if needed
-      };
-      
-      window.speechSynthesis.onvoiceschanged = handleVoicesChanged;
-      
-      // Cleanup voices handler on unmount
+      // load voices
+      window.speechSynthesis.onvoiceschanged = () => {};
       return () => {
         window.speechSynthesis.onvoiceschanged = null;
       };
     }
-  }, []); // Empty dependency array = runs once
+  }, []);
 
   useEffect(() => {
     if (level) {
@@ -98,10 +97,8 @@ export default function Quiz({ level, onBack }) {
     setLoading(true);
     try {
       const data = await getQuestion(level);
-      setWord(data.word);
+      setWord(removeSymbols(data.word));
       setOptions(data.options);
-
-      // Mark the start time for this question
       setQuestionStart(Date.now());
     } catch (err) {
       console.error(err);
@@ -113,23 +110,21 @@ export default function Quiz({ level, onBack }) {
 
   async function handleOptionClick(option) {
     setLoading(true);
-
     try {
       const result = await checkAnswer(word, option);
 
-      // Calculate how many seconds user took
+      // Time spent
       const now = Date.now();
-      const timeSpentSec = questionStart
-        ? (now - questionStart) / 1000
-        : 0;
+      const timeSpentSec = questionStart ? (now - questionStart) / 1000 : 0;
 
+      // Mark correct or incorrect
       if (result.correct) {
         setWasCorrect(true);
         showModalMessage('Correct!', `good job.`, true);
+        // NEW: increment local correctCount
+        setCorrectCount((prev) => prev + 1);
       } else {
-        // Record mistake in MistakesContext
         addMistake(word, result.correctTranslation, level);
-
         setWasCorrect(false);
         showModalMessage(
           'Incorrect',
@@ -138,9 +133,11 @@ export default function Quiz({ level, onBack }) {
         );
       }
 
-      // Record the attempt in StatsContext
+      // Record attempt in StatsContext
       recordAnswer(level, result.correct, timeSpentSec);
 
+      // NEW: increment local questionsAnswered
+      setQuestionsAnswered((prev) => prev + 1);
     } catch (err) {
       console.error(err);
       showModalMessage('Error', 'Problem checking your answer.', false);
@@ -154,8 +151,6 @@ export default function Quiz({ level, onBack }) {
     setModalBody(body);
     setWasCorrect(correct);
     setShowModal(true);
-
-    // If correct, auto close after 0.7 second
     if (correct) {
       timerRef.current = setTimeout(() => {
         handleModalClose();
@@ -165,15 +160,37 @@ export default function Quiz({ level, onBack }) {
 
   function handleModalClose() {
     setShowModal(false);
+    // If incorrect, user must click 'Close' button
     if (!wasCorrect) {
-      // Wait for user to close if incorrect
+      // do nothing special
     }
+    // Go fetch next question
     fetchNewQuestion();
   }
 
-  // Now we read the correctionRate for this level from StatsContext
-  const correctionRate = getCorrectionRate(level); // e.g. 75 if 3/4
+  // Correction rate for this entire level from StatsContext
+  // (But you might prefer local info for the session)
+  const correctionRate = getCorrectionRate(level).toFixed(1);
   const attempts = getAttempted(level);
+
+  // ============= NEW OR CHANGED =============
+  // If "fixed" mode and we've answered enough => final screen
+  if (mode.type === 'fixed' && questionsAnswered >= mode.count) {
+    // e.g. 7/10 => 70 分
+    const percent = Math.round((correctCount / mode.count) * 100);
+    return (
+      <Container className="py-5 text-center">
+        <h2>
+          {correctCount}/{mode.count} => {percent} 分！
+        </h2>
+        <p>恭喜你已完成 {mode.count} 題</p>
+        <Button variant="secondary" onClick={onBack}>
+          回到選擇難度
+        </Button>
+      </Container>
+    );
+  }
+  // =========================================
 
   return (
     <Container className="py-5 text-center">
@@ -184,9 +201,20 @@ export default function Quiz({ level, onBack }) {
       </div>
 
       <h4 className="text-muted mb-2">{level}</h4>
-      <p className="text-muted mb-4">
-        正確率: {correctionRate.toFixed(1)}%  答題數: {attempts}
-      </p>
+
+      {/* ============= NEW OR CHANGED ============= */}
+      {mode.type === 'fixed' ? (
+        // Show "目前題數 / 總題數"
+        <p className="text-muted mb-4">
+          目前題數: {questionsAnswered} / {mode.count}
+        </p>
+      ) : (
+        // Original for "無盡模式"
+        <p className="text-muted mb-4">
+          正確率: {correctionRate}% &nbsp; 答題數: {attempts}
+        </p>
+      )}
+      {/* ========================================= */}
 
       {loading ? (
         <>
@@ -195,7 +223,6 @@ export default function Quiz({ level, onBack }) {
         </>
       ) : (
         <>
-          {/* Row for the Speak button + the word */}
           <Row className="justify-content-center align-items-center mb-5">
             <Col xs="12" className="text-center">
               <Button 
@@ -208,7 +235,6 @@ export default function Quiz({ level, onBack }) {
               </Button>
             </Col>
             <Col xs="12" className="text-center">
-
               <h1 className="display-3 mb-0 fade-in-text d-inline">{word}</h1>
             </Col>
           </Row>
@@ -266,7 +292,6 @@ export default function Quiz({ level, onBack }) {
         </>
       )}
 
-      {/* Modal feedback */}
       <Modal show={showModal} onHide={handleModalClose} centered backdrop="static">
         <Modal.Header closeButton>
           <Modal.Title>{modalTitle}</Modal.Title>
