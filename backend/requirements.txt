@@ -1,7 +1,8 @@
-Flask==2.2.0
-requests==2.31.0
+Flask==3.1.0
+Flask-Cors==5.0.0
+requests==2.32.3
 PyPDF2==3.0.1
-deep_translator
+deep_translator==1.11.4
 pyttsx3==2.90
 gunicorn
-werkzeug
+werkzeug==3.1.3
