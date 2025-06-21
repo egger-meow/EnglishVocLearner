@@ -13,6 +13,7 @@ import {
 
 import { MistakesContext } from '../../context/MistakesContext';
 import { StatsContext } from '../../context/StatsContext';
+import { useAuth } from '../../context/AuthContext';
 import './Quiz.css';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -48,6 +49,7 @@ export default function Quiz({ level, mode = { type: 'endless' }, onBack }) {
 
   const { addMistake } = useContext(MistakesContext);
   const { recordAnswer, getCorrectionRate, getGlobalAverageTime, getAttempted } = useContext(StatsContext);
+  const { getAuthHeaders } = useAuth();
   const globalAvg = getGlobalAverageTime().toFixed(2);
 
   function speakWord() {
@@ -96,7 +98,7 @@ export default function Quiz({ level, mode = { type: 'endless' }, onBack }) {
   async function fetchNewQuestion() {
     setLoading(true);
     try {
-      const data = await getQuestion(level);
+      const data = await getQuestion(level, getAuthHeaders());
       setWord(removeSymbols(data.word));
       setOptions(data.options);
       setQuestionStart(Date.now());
@@ -111,7 +113,7 @@ export default function Quiz({ level, mode = { type: 'endless' }, onBack }) {
   async function handleOptionClick(option) {
     setLoading(true);
     try {
-      const result = await checkAnswer(word, option);
+      const result = await checkAnswer(word, option, level, getAuthHeaders());
 
       // Time spent
       const now = Date.now();
@@ -128,19 +130,23 @@ export default function Quiz({ level, mode = { type: 'endless' }, onBack }) {
         setWasCorrect(false);
         showModalMessage(
           'Incorrect',
-          `Correct translation for "${word}" is "${result.correctTranslation}".`,
+          `The correct answer was: ${result.correctTranslation}`,
           false
         );
       }
 
-      // Record attempt in StatsContext
-      recordAnswer(level, result.correct, timeSpentSec);
+      recordAnswer(word, result.correct, timeSpentSec, level);
 
-      // NEW: increment local questionsAnswered
+      // NEW: increment questions answered
       setQuestionsAnswered((prev) => prev + 1);
+
+      timerRef.current = setTimeout(() => {
+        setShowModal(false);
+        fetchNewQuestion();
+      }, 2000);
     } catch (err) {
       console.error(err);
-      showModalMessage('Error', 'Problem checking your answer.', false);
+      showModalMessage('Error', 'Failed to check answer.', false);
     } finally {
       setLoading(false);
     }
@@ -181,7 +187,7 @@ export default function Quiz({ level, mode = { type: 'endless' }, onBack }) {
     return (
       <Container className="py-5 text-center">
         <h2>
-          {correctCount}/{mode.count} => {percent} 分！
+          {correctCount}/{mode.count} =&gt; {percent} 分！
         </h2>
         <p>恭喜你已完成 {mode.count} 題</p>
         <Button variant="secondary" onClick={onBack}>

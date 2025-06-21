@@ -1,41 +1,85 @@
 // frontend/src/components/Header/Header.jsx
 import React from 'react';
-import { Navbar, Nav, Container } from 'react-bootstrap';
+import { Navbar, Nav, Container, Button } from 'react-bootstrap';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import '../Auth/Auth.css';
 
-export default function Header({ 
-  currentPage,
-  selectedLevel,    
+function Header({ 
+  currentPage, 
+  selectedLevel, 
   onNavHome, 
   onNavResumeQuiz, 
-  onNavMistakes 
+  onNavMistakes, 
+  onOpenAuthModal 
 }) {
+  const { user, logout, isAuthenticated } = useAuth();
+
+  const handleAuthAction = () => {
+    if (isAuthenticated) {
+      logout();
+    } else {
+      onOpenAuthModal();
+    }
+  };
+
   return (
-    <Navbar bg="primary" variant="dark" expand="lg" sticky="top">
-      <Container>
-        {/* Clickable brand that goes 'Home' */}
-        <Navbar.Brand style={{ cursor: 'pointer' }} onClick={onNavHome}>
+    <Navbar bg="primary" variant="dark" expand="lg" className="px-3">
+      <Container fluid>
+        <Navbar.Brand href="#" onClick={onNavHome}>
           賽琳娘基本英文單字測驗
         </Navbar.Brand>
 
-        <Navbar.Toggle aria-controls="basic-navbar-nav" aria-label="Toggle navigation" />
+        <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
-          <Nav className="ms-auto">
-            {/* Home link */}
-            <Nav.Link onClick={onNavHome}>首頁</Nav.Link>
-
-            {/* Conditionally show "Resume Quiz" only if showResumeQuiz === true */}
+          <Nav className="me-auto">
+            <Nav.Link 
+              href="#" 
+              onClick={onNavHome}
+            >
+              首頁
+            </Nav.Link>
             {currentPage === 'mistakes' && selectedLevel && (
-              <Nav.Link onClick={onNavResumeQuiz}>回到測驗</Nav.Link>
+              <Nav.Link 
+                href="#" 
+                onClick={onNavResumeQuiz}
+              >
+                回到測驗
+              </Nav.Link>
             )}
+            <Nav.Link 
+              href="#" 
+              onClick={onNavMistakes}
+            >
+              錯誤單字紀錄
+            </Nav.Link>
+            {isAuthenticated && (
+              <Nav.Link as={Link} to="/stats">
+                學習統計
+              </Nav.Link>
+            )}
+          </Nav>
 
-            {/* Mistakes link */}
-            <Nav.Link onClick={onNavMistakes}>錯誤單字紀錄</Nav.Link>
-
-            {/* About link */}
-            <Nav.Link href="https://www.instagram.com/jjmow_1203/?hl=zh-tw">關於</Nav.Link>
+          <Nav className="ms-auto">
+            {isAuthenticated ? (
+              <>
+                <Navbar.Text className="me-3">
+                  歡迎, {user?.username}!
+                </Navbar.Text>
+                <Button variant="outline-light" onClick={handleAuthAction}>
+                  登出
+                </Button>
+              </>
+            ) : (
+              <Button variant="outline-light" onClick={handleAuthAction}>
+                登入/註冊
+              </Button>
+            )}
           </Nav>
         </Navbar.Collapse>
       </Container>
     </Navbar>
   );
 }
+
+export default Header;

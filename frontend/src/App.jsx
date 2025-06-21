@@ -1,12 +1,21 @@
 // frontend/src/App.jsx
 
 import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import { MistakesProvider } from './context/MistakesContext';
+import { StatsProvider } from './context/StatsContext';
+
 import Header from './components/Header/Header';
 import Footer from './components/Footer/Footer';
 import LevelSelect from './components/LevelSelect/LevelSelect';
-import ModeSelection from './components/ModeSelect/ModeSelect'; // <== new import
+import ModeSelection from './components/ModeSelect/ModeSelect';
 import Quiz from './components/Quiz/Quiz';
 import MistakesList from './components/Mistakes/MistakesList';
+import AuthModal from './components/Auth/AuthModal';
+import UserStats from './components/UserStats/UserStats';
+
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 function getCurrentPage(selectedLevel, selectedMode, showMistakes) {
   if (showMistakes) {
@@ -20,10 +29,11 @@ function getCurrentPage(selectedLevel, selectedMode, showMistakes) {
   }
 }
 
-function App() {
+function MainApp() {
   const [selectedLevel, setSelectedLevel] = useState(null);
   const [selectedMode, setSelectedMode] = useState(null);
   const [showMistakes, setShowMistakes] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   // ============== HANDLERS ==============
 
@@ -62,6 +72,14 @@ function App() {
     setShowMistakes(true);
   };
 
+  const handleOpenAuthModal = () => {
+    setShowAuthModal(true);
+  };
+
+  const handleCloseAuthModal = () => {
+    setShowAuthModal(false);
+  };
+
   const currentPage = getCurrentPage(selectedLevel, selectedMode, showMistakes);
 
   // ============== RENDER ==============
@@ -77,13 +95,17 @@ function App() {
         onNavHome={handleNavHome}
         onNavResumeQuiz={handleNavResumeQuiz}
         onNavMistakes={handleNavMistakes}
+        onOpenAuthModal={handleOpenAuthModal}
       />
 
       <div style={{ flex: 1 }}>
         {showMistakes ? (
-          <MistakesList />
+          <MistakesList standalone={false} />
         ) : !selectedLevel ? (
-          <LevelSelect onLevelSelect={handleLevelSelect} />
+          <LevelSelect 
+            onLevelSelect={handleLevelSelect} 
+            onOpenAuthModal={handleOpenAuthModal}
+          />
         ) : !selectedMode ? (
           <ModeSelection 
             level={selectedLevel}
@@ -100,7 +122,31 @@ function App() {
       </div>
 
       <Footer />
+
+      <AuthModal 
+        isOpen={showAuthModal}
+        onClose={handleCloseAuthModal} 
+      />
     </div>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <MistakesProvider>
+        <StatsProvider>
+          <Router>
+            <Routes>
+              <Route path="/" element={<MainApp />} />
+              <Route path="/stats" element={<UserStats />} />
+              <Route path="/mistakes" element={<MistakesList standalone={true} />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </Router>
+        </StatsProvider>
+      </MistakesProvider>
+    </AuthProvider>
   );
 }
 

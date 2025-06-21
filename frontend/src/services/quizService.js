@@ -1,6 +1,8 @@
 // frontend/src/services/quizService.js
 
-const API_BASE_URL = 'https://englishvoclearner-backend.onrender.com';
+// const API_BASE_URL = 'https://englishvoclearner-backend.onrender.com';
+const API_BASE_URL = 'http://127.0.0.1:5000';
+
 
 /**
  * A small helper to throw an Error with a message from the response body if available.
@@ -35,8 +37,13 @@ export async function getLevels() {
 /**
  * Fetch a question for the given level -> returns { word, options }.
  */
-export async function getQuestion(level) {
-  const response = await fetch(`${API_BASE_URL}/api/question/${level}`);
+export async function getQuestion(level, authHeaders = {}) {
+  const response = await fetch(`${API_BASE_URL}/api/question/${level}`, {
+    headers: {
+      'Content-Type': 'application/json',
+      ...authHeaders
+    }
+  });
   if (!response.ok) {
     await throwResponseError(response, 'Failed to fetch question');
   }
@@ -47,13 +54,19 @@ export async function getQuestion(level) {
 /**
  * Check the user's answer -> returns { correct: boolean, correctTranslation: string }.
  */
-export async function checkAnswer(word, selected) {
+export async function checkAnswer(word, selected, level = null, authHeaders = {}) {
+  const body = { word, selected };
+  if (level) {
+    body.level = level;
+  }
+
   const response = await fetch(`${API_BASE_URL}/api/check-answer`, {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      ...authHeaders
     },
-    body: JSON.stringify({ word, selected })
+    body: JSON.stringify(body)
   });
 
   if (!response.ok) {

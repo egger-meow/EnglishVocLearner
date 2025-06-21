@@ -4,6 +4,8 @@ import random
 from flask import Blueprint, request, jsonify
 from app.services.vocabulary import load_all_vocs, download_vocs
 from app.services.translation import translate_text
+from app.auth import login_required
+from app.models import UserProgress
 import re
 
 
@@ -110,6 +112,7 @@ def check_answer():
     
     word = data.get('word')
     selected = data.get('selected')
+    level = data.get('level')  # Add level for progress tracking
     
     if not word or not selected:
         return jsonify({'error': 'Both "word" and "selected" fields are required.'}), 400
@@ -130,7 +133,25 @@ def check_answer():
             return jsonify({'error': f'Error translating word: {e}'}), 500
     
     correct = (selected.strip().lower() == correct_translation.strip().lower())
+    
+    # Track user progress if authenticated
+    session_token = request.headers.get('Authorization')
+    if session_token and session_token.startswith('Bearer '):
+        session_token = session_token[7:]
+        from app.models import Session
+        session_data = Session.validate_session(session_token)
+        if session_data and level:
+            UserProgress.record_answer(session_data['user_id'], level, word, correct)
+    
     return jsonify({
         'correct': correct,
         'correctTranslation': correct_translation
     })
+
+@quiz_bp.route('/api/user/stats', methods=['GET'])
+@login_required
+def get_user_stats():
+    """Get user's learning statistics"""
+    user_id = request.current_user['user_id']
+    stats = UserProgress.get_user_stats(user_id)
+    return jsonify(stats)

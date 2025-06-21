@@ -1,0 +1,257 @@
+/* frontend/src/components/UserStats/UserStats.css */
+
+/* Enhanced UserStats CSS for Chinese-friendly design */
+
+.main-stats-card {
+  border: none;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.user-greeting {
+  text-align: center;
+  padding: 20px 0;
+  border-bottom: 2px solid #f8f9fa;
+}
+
+.stats-title {
+  color: #2c3e50;
+  font-weight: 700;
+  font-size: 2.2rem;
+  margin-bottom: 10px;
+}
+
+.current-date {
+  font-size: 1.1rem;
+  color: #6c757d;
+  margin-bottom: 0;
+}
+
+.overall-stats-card .card-header {
+  border-radius: 10px 10px 0 0 !important;
+  font-size: 1.3rem;
+  font-weight: 600;
+  padding: 15px;
+}
+
+.stat-circle {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 50%;
+  width: 120px;
+  height: 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 15px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stat-circle:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.stat-number {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #6c757d;
+  text-align: center;
+  margin-top: 5px;
+}
+
+.level-stats-title {
+  color: #2c3e50;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 30px;
+  padding-bottom: 10px;
+  border-bottom: 3px solid #007bff;
+  display: inline-block;
+  width: 100%;
+}
+
+.level-card {
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  overflow: hidden;
+}
+
+.level-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+}
+
+.level-card .card-header {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-bottom: 2px solid #dee2e6;
+  padding: 15px 20px;
+}
+
+.level-card .card-header h4 {
+  color: #2c3e50;
+  font-weight: 600;
+  margin: 0;
+}
+
+.grade-badge {
+  font-size: 0.9rem !important;
+  padding: 8px 12px;
+  border-radius: 20px;
+  font-weight: 600;
+  color: white !important;
+}
+
+.accuracy-label {
+  color: #495057;
+  font-size: 1.1rem;
+}
+
+.accuracy-value {
+  font-weight: 700;
+  font-size: 1.3rem !important;
+}
+
+.detail-item {
+  padding: 8px 0;
+  border-bottom: 1px solid #f8f9fa;
+}
+
+.detail-item:last-child {
+  border-bottom: none;
+}
+
+.detail-label {
+  font-size: 0.95rem;
+  color: #6c757d;
+}
+
+.detail-value {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.refresh-button {
+  border-radius: 25px;
+  padding: 12px 30px;
+  font-weight: 600;
+  font-size: 1.1rem;
+  transition: all 0.3s ease;
+}
+
+.refresh-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+}
+
+.loading-spinner {
+  padding: 40px 0;
+}
+
+.loading-spinner .spinner-border {
+  width: 3rem;
+  height: 3rem;
+}
+
+/* Responsive design for mobile devices */
+@media (max-width: 768px) {
+  .stats-title {
+    font-size: 1.8rem;
+  }
+  
+  .stat-circle {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .stat-number {
+    font-size: 1.6rem;
+  }
+  
+  .stat-label {
+    font-size: 0.8rem;
+  }
+  
+  .level-card .card-header {
+    padding: 12px 15px;
+  }
+  
+  .level-card .card-header h4 {
+    font-size: 1.1rem;
+  }
+  
+  .grade-badge {
+    font-size: 0.8rem !important;
+    padding: 6px 10px;
+  }
+}
+
+/* Animation for cards */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.level-card {
+  animation: fadeInUp 0.6s ease forwards;
+}
+
+.level-card:nth-child(1) { animation-delay: 0.1s; }
+.level-card:nth-child(2) { animation-delay: 0.2s; }
+.level-card:nth-child(3) { animation-delay: 0.3s; }
+.level-card:nth-child(4) { animation-delay: 0.4s; }
+.level-card:nth-child(5) { animation-delay: 0.5s; }
+.level-card:nth-child(6) { animation-delay: 0.6s; }
+
+/* Progress bar enhancements */
+.progress {
+  border-radius: 10px;
+  background-color: #f8f9fa;
+}
+
+.progress-bar {
+  border-radius: 10px;
+  transition: width 0.8s ease;
+}
+
+/* Alert styling improvements */
+.alert {
+  border: none;
+  border-radius: 10px;
+  font-weight: 500;
+}
+
+.alert-info {
+  background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
+  color: #0c5460;
+}
+
+.alert-warning {
+  background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+  color: #856404;
+}
+
+.alert-success {
+  background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+  color: #155724;
+}
+
+.alert-danger {
+  background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+  color: #721c24;
+}

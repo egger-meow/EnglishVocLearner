@@ -4,5 +4,6 @@ requests==2.32.3
 PyPDF2==3.0.1
 deep_translator==1.11.4
 pyttsx3==2.90
+bcrypt==4.0.1
 gunicorn
 werkzeug==3.1.3

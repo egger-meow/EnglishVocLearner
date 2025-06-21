@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { getLevels } from '../../services/quizService';
-import { Container, Row, Col, Button, Spinner } from 'react-bootstrap';
+import { Container, Row, Col, Button, Spinner, Alert } from 'react-bootstrap';
+import { useAuth } from '../../context/AuthContext';
 
-export default function LevelSelect({ onLevelSelect }) {
+export default function LevelSelect({ onLevelSelect, onOpenAuthModal }) {
   const [levels, setLevels] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { isAuthenticated, user } = useAuth();
 
   useEffect(() => {
     fetchLevels();
@@ -22,6 +24,14 @@ export default function LevelSelect({ onLevelSelect }) {
       setLoading(false);
     }
   }
+
+  const handleLevelClick = (level) => {
+    if (!isAuthenticated) {
+      onOpenAuthModal();
+      return;
+    }
+    onLevelSelect(level);
+  };
 
   if (loading) {
     return (
@@ -44,18 +54,32 @@ export default function LevelSelect({ onLevelSelect }) {
     <Container className="py-5 text-center">
       <h2 className="mb-4">選擇單字難度</h2>
 
-      {/* We can stack the buttons in a single column,
-          or in multiple columns. This example uses 1 column
-          for simplicity but big, wide buttons. */}
+      {!isAuthenticated && (
+        <Alert variant="info" className="mb-4">
+          <Alert.Heading>需要登入</Alert.Heading>
+          <p>請先登入或註冊帳號才能開始練習單字。</p>
+          <Button variant="primary" onClick={onOpenAuthModal}>
+            立即登入/註冊
+          </Button>
+        </Alert>
+      )}
+
+      {isAuthenticated && (
+        <Alert variant="success" className="mb-4">
+          歡迎回來，{user?.username}！選擇一個難度開始練習吧。
+        </Alert>
+      )}
+
       <Row className="justify-content-center">
         <Col xs={12} md={6} lg={4}>
           {levels.map((lvl) => (
             <Button
               key={lvl}
-              variant="primary"
+              variant={isAuthenticated ? "primary" : "outline-secondary"}
               size="lg"
-              className="mb-3 w-100"  // 100% wide
-              onClick={() => onLevelSelect(lvl)}
+              className="mb-3 w-100"
+              onClick={() => handleLevelClick(lvl)}
+              disabled={!isAuthenticated}
             >
               {lvl}
             </Button>
