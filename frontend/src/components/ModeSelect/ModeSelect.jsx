@@ -1,7 +1,8 @@
 // frontend/src/components/ModeSelect/ModeSelect.jsx
 
 import React, { useState } from 'react';
-import { Container, Row, Col, Button, Modal } from 'react-bootstrap';
+import { Container, Row, Col, Button, Modal, Card } from 'react-bootstrap';
+import './ModeSelect.css';
 
 export default function ModeSelection({ level, onSelectMode, onBack }) {
   const [showFixedModal, setShowFixedModal] = useState(false);
@@ -19,36 +20,56 @@ export default function ModeSelection({ level, onSelectMode, onBack }) {
   };
 
   return (
-    <Container className="py-5 text-center">
-      <h2 className="mb-4">選擇模式 - {level}</h2>
-      <Row className="justify-content-center">
-        <Col xs="auto">
-          <Button variant="primary" onClick={handleEndlessMode} className="m-3">
-            無盡模式
-          </Button>
-          <Button variant="warning" onClick={handleFixedMode} className="m-3">
-            固定題數模式
-          </Button>
-        </Col>
-      </Row>
-      <div className="mt-4">
-        <Button variant="secondary" onClick={onBack}>
-          &larr; 回到選擇難度
-        </Button>
-      </div>
+    <Container className="py-5 text-center mode-selection-container">
+      <Card className="mode-card">
+        <Card.Header className="mode-header">
+          <h2>選擇模式</h2>
+          <div className="level-label">{level}</div>
+        </Card.Header>
+        <Card.Body>
+          <Row className="justify-content-center">
+            <Col md={6} className="mb-3">
+              <Button 
+                variant="primary" 
+                onClick={handleEndlessMode} 
+                className="mode-button mode-button-endless"
+              >
+                🔄 無盡模式
+                <div className="small mt-2">持續練習，不限題數</div>
+              </Button>
+            </Col>
+            <Col md={6} className="mb-3">
+              <Button 
+                variant="warning" 
+                onClick={handleFixedMode} 
+                className="mode-button mode-button-fixed"
+              >
+                📝 固定題數模式
+                <div className="small mt-2">選擇練習題數</div>
+              </Button>
+            </Col>
+          </Row>
+          <div className="mt-4">
+            <Button variant="secondary" onClick={onBack} className="back-button">
+              &larr; 回到選擇難度
+            </Button>
+          </div>
+        </Card.Body>
+      </Card>
 
       {/* Modal for picking question count */}
-      <Modal show={showFixedModal} onHide={() => setShowFixedModal(false)} centered>
-        <Modal.Header closeButton>
+      <Modal show={showFixedModal} onHide={() => setShowFixedModal(false)} centered className="quiz-modal">
+        <Modal.Header closeButton className="modal-header">
           <Modal.Title>選擇題目數量</Modal.Title>
         </Modal.Header>
-        <Modal.Body>
+        <Modal.Body className="py-4">
+          <p className="text-muted mb-3">請選擇您想要練習的題目數量：</p>
           <div className="d-flex flex-wrap justify-content-around">
             {[10, 20, 30, 50].map(num => (
               <Button
                 key={num}
                 variant="success"
-                className="m-2"
+                className="count-button"
                 onClick={() => pickQuestionCount(num)}
               >
                 {num} 題

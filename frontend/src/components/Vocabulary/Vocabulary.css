@@ -1,0 +1,331 @@
+/* frontend/src/components/Vocabulary/Vocabulary.css */
+
+/* Styling consistent with UserStats and MistakesList */
+.vocabulary-container {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.vocabulary-card {
+  border: none;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.vocabulary-title {
+  color: #2c3e50;
+  font-weight: 700;
+  font-size: 2.2rem;
+  margin-bottom: 10px;
+  animation: fadeInUp 0.5s ease forwards;
+}
+
+.vocabulary-subtitle {
+  color: #6c757d;
+  font-size: 1.1rem;
+  margin-bottom: 30px;
+  animation: fadeInUp 0.6s ease forwards;
+}
+
+.search-container {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  animation: fadeInUp 0.7s ease forwards;
+}
+
+.vocabulary-table {
+  animation: fadeInUp 0.8s ease forwards;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.vocabulary-table thead th {
+  background: linear-gradient(135deg, #20c997 0%, #0ca678 100%);
+  color: white;
+  border: none;
+  padding: 15px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.vocabulary-table tbody td {
+  padding: 15px;
+  vertical-align: middle;
+  border-bottom: 1px solid #f2f2f2;
+}
+
+.vocabulary-table tbody tr:hover {
+  background-color: rgba(32, 201, 151, 0.05);
+}
+
+.word-cell {
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 1.1rem;
+}
+
+.translation-cell {
+  font-style: italic;
+  color: #495057;
+}
+
+.notes-cell {
+  color: #6c757d;
+  font-size: 0.95rem;
+  max-width: 250px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.level-badge {
+  padding: 6px 12px;
+  border-radius: 15px;
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.level1-badge {
+  background-color: #4caf50;
+  color: white;
+}
+
+.level2-badge {
+  background-color: #2196f3;
+  color: white;
+}
+
+.level3-badge {
+  background-color: #ff9800;
+  color: white;
+}
+
+.level4-badge {
+  background-color: #9c27b0;
+  color: white;
+}
+
+.level5-badge {
+  background-color: #f44336;
+  color: white;
+}
+
+.level6-badge {
+  background-color: #e91e63;
+  color: white;
+}
+
+.added-from-badge {
+  background-color: #6c757d;
+  color: white;
+  border-radius: 15px;
+  padding: 4px 8px;
+  font-size: 0.8rem;
+}
+
+.added-from-mistakes {
+  background-color: #dc3545;
+}
+
+.added-from-manual {
+  background-color: #20c997;
+}
+
+.added-from-search {
+  background-color: #007bff;
+}
+
+.action-buttons button {
+  padding: 6px 10px;
+  margin: 0 3px;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.edit-notes-modal .modal-content {
+  border-radius: 15px;
+  border: none;
+}
+
+.edit-notes-modal .modal-header {
+  border-bottom: 2px solid #f8f9fa;
+  padding: 1.5rem;
+}
+
+.edit-notes-modal .modal-footer {
+  border-top: 2px solid #f8f9fa;
+  padding: 1.5rem;
+}
+
+.search-input {
+  border-radius: 20px;
+  padding: 12px 20px;
+  border: 2px solid #20c997;
+  transition: all 0.3s ease;
+}
+
+.search-input:focus {
+  box-shadow: 0 0 0 0.25rem rgba(32, 201, 151, 0.25);
+  border-color: #0ca678;
+}
+
+.select-level {
+  border-radius: 20px;
+  font-weight: 500;
+  padding: 10px 15px;
+  border: 2px solid #20c997;
+  transition: all 0.3s ease;
+}
+
+.select-level:focus {
+  box-shadow: 0 0 0 0.25rem rgba(32, 201, 151, 0.25);
+  border-color: #0ca678;
+}
+
+.add-word-btn {
+  border-radius: 20px;
+  font-weight: 600;
+  padding: 10px 20px;
+  transition: all 0.3s ease;
+  background-color: #20c997;
+  border-color: #20c997;
+}
+
+.add-word-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(32, 201, 151, 0.3);
+  background-color: #0ca678;
+  border-color: #0ca678;
+}
+
+.refresh-button {
+  border-radius: 25px;
+  padding: 12px 30px;
+  font-weight: 600;
+  font-size: 1.1rem;
+  transition: all 0.3s ease;
+  margin-top: 30px;
+}
+
+.refresh-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(32, 201, 151, 0.3);
+}
+
+.loading-spinner {
+  padding: 40px 0;
+}
+
+.loading-spinner .spinner-border {
+  width: 3rem;
+  height: 3rem;
+}
+
+.stat-circle {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 50%;
+  width: 120px;
+  height: 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 15px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stat-circle:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.stat-number {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #6c757d;
+  text-align: center;
+  margin-top: 5px;
+}
+
+.add-word-form label {
+  font-weight: 500;
+  margin-bottom: 5px;
+  color: #495057;
+}
+
+.add-word-form .form-control, .add-word-form .form-select {
+  border-radius: 10px;
+  padding: 10px 15px;
+  border: 2px solid #ced4da;
+}
+
+.add-word-form .form-control:focus, .add-word-form .form-select:focus {
+  box-shadow: 0 0 0 0.25rem rgba(32, 201, 151, 0.25);
+  border-color: #20c997;
+}
+
+/* Responsive design for mobile devices */
+@media (max-width: 768px) {
+  .vocabulary-title {
+    font-size: 1.8rem;
+  }
+  
+  .search-container {
+    padding: 15px;
+  }
+  
+  .vocabulary-table thead th {
+    padding: 10px;
+    font-size: 0.9rem;
+  }
+  
+  .vocabulary-table tbody td {
+    padding: 10px;
+    font-size: 0.9rem;
+  }
+  
+  .word-cell {
+    font-size: 1rem;
+  }
+  
+  .notes-cell {
+    max-width: 150px;
+  }
+  
+  .search-input, .select-level, .add-word-btn {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+}
+
+/* Animation for fadeInUp */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

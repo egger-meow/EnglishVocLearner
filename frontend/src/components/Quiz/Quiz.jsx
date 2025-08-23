@@ -140,10 +140,21 @@ export default function Quiz({ level, mode = { type: 'endless' }, onBack }) {
       // NEW: increment questions answered
       setQuestionsAnswered((prev) => prev + 1);
 
-      timerRef.current = setTimeout(() => {
-        setShowModal(false);
-        fetchNewQuestion();
-      }, 2000);
+      // Clear existing timer if any
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+      
+      // For incorrect answers, we'll set up the timer here
+      // For correct answers, the timer is set in showModalMessage
+      if (!result.correct) {
+        timerRef.current = setTimeout(() => {
+          setShowModal(false);
+          fetchNewQuestion();
+          // Clear the timer reference after executing
+          timerRef.current = null;
+        }, 2000);
+      }
     } catch (err) {
       console.error(err);
       showModalMessage('Error', 'Failed to check answer.', false);
@@ -157,27 +168,35 @@ export default function Quiz({ level, mode = { type: 'endless' }, onBack }) {
     setModalBody(body);
     setWasCorrect(correct);
     setShowModal(true);
+    
+    // For correct answers, automatically close after a delay
     if (correct) {
       timerRef.current = setTimeout(() => {
-        handleModalClose();
-      }, 700);
+        setShowModal(false);
+        fetchNewQuestion();
+        timerRef.current = null;
+      }, 1500); // 1.5 seconds delay
     }
   }
 
   function handleModalClose() {
     setShowModal(false);
-    // If incorrect, user must click 'Close' button
-    if (!wasCorrect) {
-      // do nothing special
+    // Always fetch next question when modal is closed manually
+    // Clear any existing timers
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
     }
-    // Go fetch next question
     fetchNewQuestion();
   }
 
   // Correction rate for this entire level from StatsContext
   // (But you might prefer local info for the session)
-  const correctionRate = getCorrectionRate(level).toFixed(1);
-  const attempts = getAttempted(level);
+  const correctionRate = getCorrectionRate(level)?.toFixed(1) || '0.0';
+  const attempts = getAttempted(level) || 0;
+  
+  // Calculate local session stats as backup
+  const localCorrectionRate = questionsAnswered > 0 ? ((correctCount / questionsAnswered) * 100).toFixed(1) : '0.0';
 
   // ============= NEW OR CHANGED =============
   // If "fixed" mode and we've answered enough => final screen
@@ -199,116 +218,116 @@ export default function Quiz({ level, mode = { type: 'endless' }, onBack }) {
   // =========================================
 
   return (
-    <Container className="py-5 text-center">
-      <div className="mb-4">
-        <Button variant="secondary" onClick={onBack}>
-          &larr; 選擇其他難度
-        </Button>
+    <Container className="py-5 text-center quiz-container">
+      <div className="quiz-header">
+        <div className="mb-3">
+          <Button variant="secondary" onClick={onBack} className="quiz-back-button">
+            &larr; 選擇其他難度
+          </Button>
+        </div>
+        
+        <div className="quiz-level-badge mb-3">{level}</div>
+
+        {/* ============= NEW OR CHANGED ============= */}
+        {mode.type === 'fixed' ? (
+          // Show "目前題數 / 總題數"
+          <div className="quiz-stats">
+            目前題數: <strong>{questionsAnswered}</strong> / <strong>{mode.count}</strong>
+          </div>
+        ) : (
+          // Original for "無盡模式"
+          <div className="quiz-stats">
+            正確率: <strong>{attempts > 0 ? correctionRate : localCorrectionRate}%</strong> &nbsp; 答題數: <strong>{attempts > 0 ? attempts : questionsAnswered}</strong>
+          </div>
+        )}
+        {/* ========================================= */}
       </div>
 
-      <h4 className="text-muted mb-2">{level}</h4>
-
-      {/* ============= NEW OR CHANGED ============= */}
-      {mode.type === 'fixed' ? (
-        // Show "目前題數 / 總題數"
-        <p className="text-muted mb-4">
-          目前題數: {questionsAnswered} / {mode.count}
-        </p>
-      ) : (
-        // Original for "無盡模式"
-        <p className="text-muted mb-4">
-          正確率: {correctionRate}% &nbsp; 答題數: {attempts}
-        </p>
-      )}
-      {/* ========================================= */}
-
       {loading ? (
-        <>
-          <Spinner animation="border" variant="primary" />
-          <div className="mt-2">Loading question...</div>
-        </>
+        <div className="loading-spinner-container">
+          <Spinner animation="border" variant="primary" size="lg" />
+          <div className="loading-text">正在載入題目...</div>
+        </div>
       ) : (
         <>
-          <Row className="justify-content-center align-items-center mb-5">
-            <Col xs="12" className="text-center">
-              <Button 
-                variant="outline-secondary" 
-                onClick={speakWord}
-                aria-label="Speak word"
-                className="me-2"
-              >
-                <FontAwesomeIcon icon={faVolumeHigh} />
-              </Button>
-            </Col>
-            <Col xs="12" className="text-center">
-              <h1 className="display-3 mb-0 fade-in-text d-inline">{word}</h1>
-            </Col>
-          </Row>
+          <div className="quiz-word-container">
+            <Button 
+              variant="outline-secondary" 
+              onClick={speakWord}
+              aria-label="Speak word"
+              className="speak-button"
+            >
+              <FontAwesomeIcon icon={faVolumeHigh} />
+            </Button>
+            <div className="text-center">
+              <h1 className="quiz-word fade-in-text">{word}</h1>
+            </div>
+          </div>
 
           {/* 2x2 layout for answer options */}
-          <Row className="justify-content-center">
-            <Col xs={12} md={6} lg={3} className="mb-3">
-              <Button
-                variant="success"
-                size="lg"
-                className="w-100"
-                onClick={() => handleOptionClick(options[0])}
-              >
-                {options[0]}
-              </Button>
-            </Col>
-            <Col xs={12} md={6} lg={3} className="mb-3">
-              <Button
-                variant="success"
-                size="lg"
-                className="w-100"
-                onClick={() => handleOptionClick(options[1])}
-              >
-                {options[1]}
-              </Button>
-            </Col>
-          </Row>
+          <div className="quiz-options-grid">
+            <Row className="justify-content-center">
+              <Col xs={12} md={6} lg={3} className="mb-3">
+                <Button
+                  variant="success"
+                  size="lg"
+                  className="quiz-option-button w-100"
+                  onClick={() => handleOptionClick(options[0])}
+                >
+                  {options[0]}
+                </Button>
+              </Col>
+              <Col xs={12} md={6} lg={3} className="mb-3">
+                <Button
+                  variant="success"
+                  size="lg"
+                  className="quiz-option-button w-100"
+                  onClick={() => handleOptionClick(options[1])}
+                >
+                  {options[1]}
+                </Button>
+              </Col>
+            </Row>
 
-          <Row className="justify-content-center">
-            <Col xs={12} md={6} lg={3} className="mb-3">
-              <Button
-                variant="success"
-                size="lg"
-                className="w-100"
-                onClick={() => handleOptionClick(options[2])}
-              >
-                {options[2]}
-              </Button>
-            </Col>
-            <Col xs={12} md={6} lg={3} className="mb-3">
-              <Button
-                variant="success"
-                size="lg"
-                className="w-100"
-                onClick={() => handleOptionClick(options[3])}
-              >
-                {options[3]}
-              </Button>
-            </Col>
-          </Row>
+            <Row className="justify-content-center">
+              <Col xs={12} md={6} lg={3} className="mb-3">
+                <Button
+                  variant="success"
+                  size="lg"
+                  className="quiz-option-button w-100"
+                  onClick={() => handleOptionClick(options[2])}
+                >
+                  {options[2]}
+                </Button>
+              </Col>
+              <Col xs={12} md={6} lg={3} className="mb-3">
+                <Button
+                  variant="success"
+                  size="lg"
+                  className="quiz-option-button w-100"
+                  onClick={() => handleOptionClick(options[3])}
+                >
+                  {options[3]}
+                </Button>
+              </Col>
+            </Row>
+          </div>
 
-          <div className="mt-4 text-muted" style={{ fontSize: "0.8rem" }}>
-            平均答題時間: {globalAvg} s
+          <div className="quiz-time-stats">
+            平均答題時間: <strong>{globalAvg} 秒</strong>
           </div>
         </>
       )}
 
-      <Modal show={showModal} onHide={handleModalClose} centered backdrop="static">
-        <Modal.Header closeButton>
+      <Modal show={showModal} onHide={handleModalClose} centered backdrop="static" className="quiz-modal">
+        <Modal.Header closeButton className={wasCorrect ? "quiz-modal-header-success" : "quiz-modal-header-error"}>
           <Modal.Title>{modalTitle}</Modal.Title>
         </Modal.Header>
-        <Modal.Body>{modalBody}</Modal.Body>
+        <Modal.Body className="p-4">{modalBody}</Modal.Body>
         <Modal.Footer>
-          {!wasCorrect && (
-            <Button variant="primary" onClick={handleModalClose}>
-              Close
-            </Button>
-          )}
+          <Button variant="primary" onClick={handleModalClose}>
+            {wasCorrect ? '下一題' : '知道了'}
+          </Button>
         </Modal.Footer>
       </Modal>
     </Container>

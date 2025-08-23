@@ -1,0 +1,237 @@
+/* frontend/src/components/Mistakes/MistakesList.css */
+
+/* Enhanced MistakesList CSS matching UserStats style */
+
+.mistakes-container {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.mistakes-card {
+  border: none;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.mistakes-title {
+  color: #2c3e50;
+  font-weight: 700;
+  font-size: 2.2rem;
+  margin-bottom: 10px;
+  animation: fadeInUp 0.5s ease forwards;
+}
+
+.mistakes-subtitle {
+  color: #6c757d;
+  font-size: 1.1rem;
+  margin-bottom: 30px;
+  animation: fadeInUp 0.6s ease forwards;
+}
+
+.filter-container {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  animation: fadeInUp 0.7s ease forwards;
+}
+
+.mistakes-table {
+  animation: fadeInUp 0.8s ease forwards;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.mistakes-table thead th {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  color: white;
+  border: none;
+  padding: 15px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.mistakes-table tbody td {
+  padding: 15px;
+  vertical-align: middle;
+  border-bottom: 1px solid #f2f2f2;
+  text-align: center;
+}
+
+.mistakes-table tbody tr:hover {
+  background-color: rgba(0, 123, 255, 0.05);
+}
+
+.word-cell {
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 1.1rem;
+}
+
+.translation-cell {
+  font-style: italic;
+  color: #495057;
+}
+
+.level-badge {
+  padding: 6px 12px;
+  border-radius: 15px;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.level1-badge {
+  background-color: #4caf50;
+  color: white;
+}
+
+.level2-badge {
+  background-color: #2196f3;
+  color: white;
+}
+
+.level3-badge {
+  background-color: #ff9800;
+  color: white;
+}
+
+.level4-badge {
+  background-color: #9c27b0;
+  color: white;
+}
+
+.level5-badge {
+  background-color: #f44336;
+  color: white;
+}
+
+.level6-badge {
+  background-color: #e91e63;
+  color: white;
+}
+
+.count-badge {
+  background-color: #dc3545;
+  color: white;
+  border-radius: 50%;
+  padding: 5px 10px;
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+.last-practiced {
+  font-size: 0.9rem;
+  color: #6c757d;
+}
+
+.select-level {
+  border-radius: 20px;
+  font-weight: 500;
+  padding: 10px 15px;
+  border: 2px solid #007bff;
+  transition: all 0.3s ease;
+}
+
+.select-level:focus {
+  box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.25);
+  border-color: #0056b3;
+}
+
+.clear-button {
+  border-radius: 20px;
+  font-weight: 600;
+  padding: 10px 20px;
+  transition: all 0.3s ease;
+}
+
+.clear-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(220, 53, 69, 0.3);
+}
+
+.refresh-button {
+  border-radius: 25px;
+  padding: 12px 30px;
+  font-weight: 600;
+  font-size: 1.1rem;
+  transition: all 0.3s ease;
+  margin-top: 30px;
+}
+
+.refresh-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+}
+
+.loading-spinner {
+  padding: 40px 0;
+}
+
+.loading-spinner .spinner-border {
+  width: 3rem;
+  height: 3rem;
+}
+
+/* Progress bar styling */
+.mistakes-progress {
+  height: 8px;
+  border-radius: 4px;
+  margin: 10px 0;
+}
+
+.progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  color: #6c757d;
+  margin-bottom: 5px;
+}
+
+/* Responsive design for mobile devices */
+@media (max-width: 768px) {
+  .mistakes-title {
+    font-size: 1.8rem;
+  }
+  
+  .filter-container {
+    padding: 15px;
+  }
+  
+  .mistakes-table thead th {
+    padding: 10px;
+    font-size: 0.9rem;
+  }
+  
+  .mistakes-table tbody td {
+    padding: 10px;
+    font-size: 0.9rem;
+  }
+  
+  .word-cell {
+    font-size: 1rem;
+  }
+  
+  .select-level, .clear-button {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+}
+
+/* Animation for fadeInUp */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

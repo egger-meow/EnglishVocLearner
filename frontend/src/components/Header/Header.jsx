@@ -54,9 +54,14 @@ function Header({
               錯誤單字紀錄
             </Nav.Link>
             {isAuthenticated && (
-              <Nav.Link as={Link} to="/stats">
-                學習統計
-              </Nav.Link>
+              <>
+                <Nav.Link as={Link} to="/stats">
+                  學習統計
+                </Nav.Link>
+                <Nav.Link as={Link} to="/vocabulary">
+                  單字庫
+                </Nav.Link>
+              </>
             )}
           </Nav>
 

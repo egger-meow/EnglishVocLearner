@@ -8,7 +8,7 @@ import Header from '../Header/Header';
 import Footer from '../Footer/Footer';
 import './UserStats.css';
 
-const UserStats = () => {
+const UserStats = ({ standalone = true }) => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -228,6 +228,9 @@ const UserStats = () => {
               </Nav.Link>
               <Nav.Link as={Link} to="/stats" active>
                 學習統計
+              </Nav.Link>
+              <Nav.Link as={Link} to="/vocabulary">
+                單字庫
               </Nav.Link>
             </Nav>
 

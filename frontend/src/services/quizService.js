@@ -52,6 +52,23 @@ export async function getQuestion(level, authHeaders = {}) {
 }
 
 /**
+ * Fetch a question from user's vocabulary library -> returns { word, options }.
+ */
+export async function getVocabularyQuestion(authHeaders = {}) {
+  const response = await fetch(`${API_BASE_URL}/api/vocabulary-question`, {
+    headers: {
+      'Content-Type': 'application/json',
+      ...authHeaders
+    }
+  });
+  if (!response.ok) {
+    await throwResponseError(response, 'Failed to fetch vocabulary question');
+  }
+  // if ok, parse and return
+  return response.json();
+}
+
+/**
  * Check the user's answer -> returns { correct: boolean, correctTranslation: string }.
  */
 export async function checkAnswer(word, selected, level = null, authHeaders = {}) {

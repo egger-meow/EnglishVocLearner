@@ -14,6 +14,8 @@ import Quiz from './components/Quiz/Quiz';
 import MistakesList from './components/Mistakes/MistakesList';
 import AuthModal from './components/Auth/AuthModal';
 import UserStats from './components/UserStats/UserStats';
+import Vocabulary from './components/Vocabulary/Vocabulary';
+import VocabularyQuiz from './components/VocabularyQuiz/VocabularyQuiz';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 
@@ -141,6 +143,8 @@ function App() {
               <Route path="/" element={<MainApp />} />
               <Route path="/stats" element={<UserStats />} />
               <Route path="/mistakes" element={<MistakesList standalone={true} />} />
+              <Route path="/vocabulary" element={<Vocabulary />} />
+              <Route path="/vocabulary-quiz" element={<VocabularyQuiz />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Router>

@@ -1,0 +1,143 @@
+/* LevelSelect.css */
+.level-select-container {
+  animation: fadeIn 0.5s ease-in;
+}
+
+.level-selection-title {
+  font-size: 2rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  color: #343a40;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.level-card {
+  background: #ffffff;
+  border-radius: 10px;
+  border: none;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.level-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+}
+
+.level-button {
+  font-size: 1.2rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1);
+}
+
+.level-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 8px rgba(0, 0, 0, 0.15);
+}
+
+.level-button.active {
+  transform: scale(0.98);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.level-button::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.2));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.level-button:hover::after {
+  opacity: 1;
+}
+
+.level-button-1 {
+  background-color: #28a745;
+  border-color: #28a745;
+}
+
+.level-button-2 {
+  background-color: #17a2b8;
+  border-color: #17a2b8;
+}
+
+.level-button-3 {
+  background-color: #007bff;
+  border-color: #007bff;
+}
+
+.level-button-4 {
+  background-color: #6f42c1;
+  border-color: #6f42c1;
+}
+
+.level-button-5 {
+  background-color: #fd7e14;
+  border-color: #fd7e14;
+}
+
+.level-button-6 {
+  background-color: #dc3545;
+  border-color: #dc3545;
+}
+
+.level-description {
+  font-size: 0.9rem;
+  color: #6c757d;
+  margin-top: 0.5rem;
+}
+
+.auth-alert {
+  border-radius: 10px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+  animation: fadeIn 0.6s ease-in;
+}
+
+.welcome-alert {
+  border-radius: 10px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+  animation: fadeIn 0.6s ease-in;
+}
+
+.loading-container {
+  padding: 3rem 0;
+}
+
+.loading-spinner {
+  margin-bottom: 1rem;
+}
+
+.loader-text {
+  color: #6c757d;
+  font-weight: 500;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.level-info {
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+  color: #6c757d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.level-info-icon {
+  margin-right: 0.5rem;
+}

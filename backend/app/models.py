@@ -8,6 +8,7 @@ import bcrypt
 from datetime import datetime, timedelta
 from typing import Optional, List, Dict
 import os
+from collections import defaultdict
 
 DATABASE_PATH = os.path.join(os.path.dirname(__file__), 'database.db')
 
@@ -65,6 +66,34 @@ class Database:
                 expires_at TIMESTAMP NOT NULL,
                 is_active BOOLEAN DEFAULT TRUE,
                 FOREIGN KEY (user_id) REFERENCES users (id)
+            )
+        ''')
+        
+        # Create vocabulary_library table for users' custom vocabulary lists
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS vocabulary_library (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                word TEXT NOT NULL,
+                translation TEXT,
+                level TEXT,
+                notes TEXT,
+                added_from TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                last_reviewed TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users (id),
+                UNIQUE(user_id, word)
+            )
+        ''')
+        
+        # Create system_vocabulary table for core system vocabulary words
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS system_vocabulary (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                word TEXT NOT NULL,
+                level TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(word, level)
             )
         ''')
         
@@ -328,3 +357,272 @@ class UserProgress:
         conn.close()
         
         return {'level_stats': stats}
+        
+    @staticmethod
+    def get_user_mistakes(user_id: int, level: str = None) -> Dict:
+        """Get user's mistake records"""
+        conn = Database.get_connection()
+        cursor = conn.cursor()
+        
+        query = '''
+            SELECT 
+                word,
+                level,
+                incorrect_count as miss_count,
+                correct_count,
+                last_practiced
+            FROM user_progress 
+            WHERE user_id = ? AND incorrect_count > 0
+        '''
+        
+        params = [user_id]
+        
+        if level and level != 'all':
+            query += ' AND level = ?'
+            params.append(level)
+            
+        query += ' ORDER BY incorrect_count DESC, last_practiced DESC'
+        
+        cursor.execute(query, params)
+        
+        mistakes = [dict(row) for row in cursor.fetchall()]
+        
+        # For each word, get its translation
+        from app.services.translation import translate_text
+        for mistake in mistakes:
+            try:
+                mistake['translation'] = translate_text(mistake['word'])
+            except Exception:
+                mistake['translation'] = '翻譯失敗'
+        
+        conn.close()
+        
+        return {'mistakes': mistakes}
+
+
+class SystemVocabulary:
+    @staticmethod
+    def add_word(word: str, level: str) -> bool:
+        """Add a word to the system vocabulary"""
+        conn = Database.get_connection()
+        cursor = conn.cursor()
+        
+        try:
+            cursor.execute(
+                'INSERT OR REPLACE INTO system_vocabulary (word, level) VALUES (?, ?)',
+                (word, level)
+            )
+            
+            conn.commit()
+            return True
+            
+        except Exception as e:
+            print(f"Error adding word to system vocabulary: {e}")
+            return False
+        finally:
+            conn.close()
+    
+    @staticmethod
+    def add_multiple_words(word_level_pairs: List[tuple]) -> bool:
+        """Add multiple words to the system vocabulary"""
+        conn = Database.get_connection()
+        cursor = conn.cursor()
+        
+        try:
+            cursor.executemany(
+                'INSERT OR REPLACE INTO system_vocabulary (word, level) VALUES (?, ?)',
+                word_level_pairs
+            )
+            
+            conn.commit()
+            return True
+            
+        except Exception as e:
+            print(f"Error adding words to system vocabulary: {e}")
+            return False
+        finally:
+            conn.close()
+    
+    @staticmethod
+    def get_words_by_level(level: str) -> List[str]:
+        """Get all vocabulary words for a specific level"""
+        conn = Database.get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute(
+            'SELECT word FROM system_vocabulary WHERE level = ? ORDER BY word',
+            (level,)
+        )
+        
+        words = [row['word'] for row in cursor.fetchall()]
+        conn.close()
+        
+        return words
+    
+    @staticmethod
+    def get_all_words() -> Dict[str, List[str]]:
+        """Get all vocabulary words grouped by level"""
+        conn = Database.get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute('SELECT word, level FROM system_vocabulary ORDER BY level, word')
+        
+        result = defaultdict(list)
+        for row in cursor.fetchall():
+            result[row['level']].append(row['word'])
+        
+        conn.close()
+        return dict(result)
+    
+    @staticmethod
+    def get_random_words(level: str, count: int = 4) -> List[str]:
+        """Get random words from a specific level"""
+        conn = Database.get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute(
+            'SELECT word FROM system_vocabulary WHERE level = ? ORDER BY RANDOM() LIMIT ?',
+            (level, count)
+        )
+        
+        words = [row['word'] for row in cursor.fetchall()]
+        conn.close()
+        
+        return words
+
+class VocabularyLibrary:
+    @staticmethod
+    def add_word(user_id: int, word: str, translation: str = None, level: str = None, notes: str = None, added_from: str = 'manual') -> bool:
+        """Add a word to user's vocabulary library"""
+        conn = Database.get_connection()
+        cursor = conn.cursor()
+        
+        try:
+            # If translation is not provided, try to translate the word
+            if not translation:
+                from app.services.translation import translate_text
+                try:
+                    translation = translate_text(word)
+                except Exception:
+                    translation = '翻譯失敗'
+            
+            cursor.execute('''
+                INSERT INTO vocabulary_library (user_id, word, translation, level, notes, added_from, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+                ON CONFLICT(user_id, word) DO UPDATE SET
+                    translation = COALESCE(?, translation),
+                    level = COALESCE(?, level),
+                    notes = COALESCE(?, notes),
+                    added_from = COALESCE(?, added_from)
+            ''', (user_id, word, translation, level, notes, added_from, translation, level, notes, added_from))
+            
+            conn.commit()
+            return True
+            
+        except Exception as e:
+            print(f"Error adding word to vocabulary library: {e}")
+            return False
+        finally:
+            conn.close()
+    
+    @staticmethod
+    def remove_word(user_id: int, word: str) -> bool:
+        """Remove a word from user's vocabulary library"""
+        conn = Database.get_connection()
+        cursor = conn.cursor()
+        
+        try:
+            cursor.execute('''
+                DELETE FROM vocabulary_library 
+                WHERE user_id = ? AND word = ?
+            ''', (user_id, word))
+            
+            conn.commit()
+            return cursor.rowcount > 0
+        except Exception as e:
+            print(f"Error removing word from vocabulary library: {e}")
+            return False
+        finally:
+            conn.close()
+    
+    @staticmethod
+    def get_user_vocabulary(user_id: int, search_term: str = None, level: str = None) -> Dict:
+        """Get user's vocabulary library with optional filtering"""
+        conn = Database.get_connection()
+        cursor = conn.cursor()
+        
+        query = '''
+            SELECT 
+                id,
+                word,
+                translation,
+                level,
+                notes,
+                added_from,
+                created_at,
+                last_reviewed
+            FROM vocabulary_library 
+            WHERE user_id = ?
+        '''
+        
+        params = [user_id]
+        
+        if search_term:
+            query += ' AND (word LIKE ? OR translation LIKE ?)'
+            search_param = f'%{search_term}%'
+            params.extend([search_param, search_param])
+        
+        if level and level != 'all':
+            query += ' AND (level = ? OR level IS NULL)'
+            params.append(level)
+            
+        query += ' ORDER BY created_at DESC'
+        
+        cursor.execute(query, params)
+        
+        vocabulary = [dict(row) for row in cursor.fetchall()]
+        conn.close()
+        
+        return {'vocabulary': vocabulary}
+    
+    @staticmethod
+    def update_word_notes(user_id: int, word: str, notes: str) -> bool:
+        """Update notes for a word in user's vocabulary library"""
+        conn = Database.get_connection()
+        cursor = conn.cursor()
+        
+        try:
+            cursor.execute('''
+                UPDATE vocabulary_library 
+                SET notes = ?
+                WHERE user_id = ? AND word = ?
+            ''', (notes, user_id, word))
+            
+            conn.commit()
+            return cursor.rowcount > 0
+        except Exception as e:
+            print(f"Error updating word notes in vocabulary library: {e}")
+            return False
+        finally:
+            conn.close()
+    
+    @staticmethod
+    def record_review(user_id: int, word: str) -> bool:
+        """Record that a word has been reviewed"""
+        conn = Database.get_connection()
+        cursor = conn.cursor()
+        
+        try:
+            cursor.execute('''
+                UPDATE vocabulary_library 
+                SET last_reviewed = CURRENT_TIMESTAMP
+                WHERE user_id = ? AND word = ?
+            ''', (user_id, word))
+            
+            conn.commit()
+            return cursor.rowcount > 0
+        except Exception as e:
+            print(f"Error recording word review in vocabulary library: {e}")
+            return False
+        finally:
+            conn.close()
