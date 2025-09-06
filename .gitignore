@@ -26,3 +26,5 @@ frontend/yarn-debug.log*
 frontend/yarn-error.log*
 
 *.pyc
+
+backend/venv
