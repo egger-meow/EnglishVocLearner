@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { Container, Row, Col, Card, Button, Alert, ProgressBar, Badge, Navbar, Nav } from 'react-bootstrap';
+import { API_ENDPOINTS, buildApiUrl, getFetchOptions } from '../../config/api';
 import Header from '../Header/Header';
 import Footer from '../Footer/Footer';
 import './UserStats.css';
@@ -18,12 +19,7 @@ const UserStats = ({ standalone = true }) => {
   const fetchUserStats = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5000/api/user/stats', {
-        headers: {
-          'Content-Type': 'application/json',
-          ...getAuthHeaders(),
-        },
-      });
+      const response = await fetch(buildApiUrl(API_ENDPOINTS.USER.STATS), getFetchOptions(getAuthHeaders()));
 
       if (response.ok) {
         const data = await response.json();

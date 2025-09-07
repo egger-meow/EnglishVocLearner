@@ -3,12 +3,10 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Container, Row, Col, Card, Button, Table, Form, Alert, Badge, Spinner, Toast, ToastContainer, Modal } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { API_ENDPOINTS, buildApiUrl, getFetchOptions } from '../../config/api';
 import Header from '../Header/Header';
 import Footer from '../Footer/Footer';
 import './MistakesList.css';
-
-// Define API base URL - can be replaced with environment variable in production
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 export default function MistakesList({ standalone = false }) {
   const [mistakes, setMistakes] = useState([]);
@@ -32,12 +30,7 @@ export default function MistakesList({ standalone = false }) {
       setLoading(true);
       setError('');
       
-      const response = await fetch(`http://localhost:5000/api/user/mistakes?level=${level}`, {
-        headers: {
-          'Content-Type': 'application/json',
-          ...getAuthHeaders()
-        }
-      });
+      const response = await fetch(buildApiUrl(`${API_ENDPOINTS.USER.MISTAKES}?level=${level}`), getFetchOptions(getAuthHeaders()));
       
       if (response.ok) {
         const data = await response.json();
@@ -86,19 +79,15 @@ export default function MistakesList({ standalone = false }) {
   
   const addToVocabulary = async (word, translation, level) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/vocabulary`, {
+      const response = await fetch(buildApiUrl(API_ENDPOINTS.VOCABULARY.BASE), getFetchOptions(getAuthHeaders(), {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...getAuthHeaders()
-        },
         body: JSON.stringify({
           word,
           translation,
           level,
           added_from: 'mistakes'
         })
-      });
+      }));
       
       if (response.ok) {
         // Show success toast

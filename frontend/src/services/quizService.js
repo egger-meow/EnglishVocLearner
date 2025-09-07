@@ -1,7 +1,6 @@
 // frontend/src/services/quizService.js
 
-// const API_BASE_URL = 'https://englishvoclearner-backend.onrender.com';
-const API_BASE_URL = 'http://127.0.0.1:5000';
+import { API_BASE_URL, API_ENDPOINTS, buildApiUrl, getFetchOptions } from '../config/api';
 
 
 /**
@@ -26,7 +25,7 @@ async function throwResponseError(response, defaultMessage) {
  * Fetch available levels -> returns an array like ["LEVEL1","LEVEL2"].
  */
 export async function getLevels() {
-  const response = await fetch(`${API_BASE_URL}/api/levels`);
+  const response = await fetch(buildApiUrl(API_ENDPOINTS.QUIZ.LEVELS));
   if (!response.ok) {
     await throwResponseError(response, 'Failed to fetch levels');
   }
@@ -38,12 +37,7 @@ export async function getLevels() {
  * Fetch a question for the given level -> returns { word, options }.
  */
 export async function getQuestion(level, authHeaders = {}) {
-  const response = await fetch(`${API_BASE_URL}/api/question/${level}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...authHeaders
-    }
-  });
+  const response = await fetch(buildApiUrl(`${API_ENDPOINTS.QUIZ.QUESTION}/${level}`), getFetchOptions(authHeaders));
   if (!response.ok) {
     await throwResponseError(response, 'Failed to fetch question');
   }
@@ -55,12 +49,7 @@ export async function getQuestion(level, authHeaders = {}) {
  * Fetch a question from user's vocabulary library -> returns { word, options }.
  */
 export async function getVocabularyQuestion(authHeaders = {}) {
-  const response = await fetch(`${API_BASE_URL}/api/vocabulary-question`, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...authHeaders
-    }
-  });
+  const response = await fetch(buildApiUrl(API_ENDPOINTS.QUIZ.VOCABULARY_QUESTION), getFetchOptions(authHeaders));
   if (!response.ok) {
     await throwResponseError(response, 'Failed to fetch vocabulary question');
   }
@@ -77,14 +66,10 @@ export async function checkAnswer(word, selected, level = null, authHeaders = {}
     body.level = level;
   }
 
-  const response = await fetch(`${API_BASE_URL}/api/check-answer`, {
+  const response = await fetch(buildApiUrl(API_ENDPOINTS.QUIZ.CHECK_ANSWER), getFetchOptions(authHeaders, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...authHeaders
-    },
     body: JSON.stringify(body)
-  });
+  }));
 
   if (!response.ok) {
     await throwResponseError(response, 'Failed to check answer');

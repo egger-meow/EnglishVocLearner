@@ -1,6 +1,7 @@
 // frontend/src/context/AuthContext.jsx
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { API_ENDPOINTS, buildApiUrl, getFetchOptions } from '../config/api';
 
 const AuthContext = createContext();
 
@@ -20,13 +21,10 @@ export const AuthProvider = ({ children }) => {
   const logout = useCallback(async () => {
     if (sessionToken) {
       try {
-        await fetch('http://localhost:5000/api/auth/logout', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${sessionToken}`,
-            'Content-Type': 'application/json',
-          },
-        });
+        await fetch(buildApiUrl(API_ENDPOINTS.AUTH.LOGOUT), getFetchOptions(
+          { 'Authorization': `Bearer ${sessionToken}` },
+          { method: 'POST' }
+        ));
       } catch (error) {
         console.error('Logout error:', error);
       }
@@ -40,12 +38,9 @@ export const AuthProvider = ({ children }) => {
 
   const validateSession = useCallback(async (token) => {
     try {
-      const response = await fetch('http://localhost:5000/api/auth/me', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await fetch(buildApiUrl(API_ENDPOINTS.AUTH.ME), getFetchOptions(
+        { 'Authorization': `Bearer ${token}` }
+      ));
 
       if (response.ok) {
         const data = await response.json();
@@ -80,13 +75,10 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (username, password) => {
     try {
-      const response = await fetch('http://localhost:5000/api/auth/login', {
+      const response = await fetch(buildApiUrl(API_ENDPOINTS.AUTH.LOGIN), getFetchOptions({}, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username, password }),
-      });
+        body: JSON.stringify({ username, password })
+      }));
 
       const data = await response.json();
 
@@ -107,18 +99,15 @@ export const AuthProvider = ({ children }) => {
 
   const signup = async (activationCode, username, email, password) => {
     try {
-      const response = await fetch('http://localhost:5000/api/auth/signup', {
+      const response = await fetch(buildApiUrl(API_ENDPOINTS.AUTH.SIGNUP), getFetchOptions({}, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({
           activation_code: activationCode,
           username,
           email,
           password,
-        }),
-      });
+        })
+      }));
 
       const data = await response.json();
 
@@ -139,13 +128,10 @@ export const AuthProvider = ({ children }) => {
 
   const checkActivationCode = async (activationCode) => {
     try {
-      const response = await fetch('http://localhost:5000/api/auth/check-activation-code', {
+      const response = await fetch(buildApiUrl(API_ENDPOINTS.AUTH.CHECK_ACTIVATION_CODE), getFetchOptions({}, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ activation_code: activationCode }),
-      });
+        body: JSON.stringify({ activation_code: activationCode })
+      }));
 
       const data = await response.json();
       return { success: response.ok, ...data };

@@ -3,12 +3,10 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Container, Row, Col, Card, Button, Table, Form, Alert, Badge, Spinner, Modal } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { API_ENDPOINTS, buildApiUrl, getFetchOptions } from '../../config/api';
 import Header from '../Header/Header';
 import Footer from '../Footer/Footer';
 import './Vocabulary.css';
-
-// Define API base URL - can be replaced with environment variable in production
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://127.0.0.1:5000';
 
 export default function Vocabulary({ standalone = true }) {
   const [vocabulary, setVocabulary] = useState([]);
@@ -39,19 +37,16 @@ export default function Vocabulary({ standalone = true }) {
       setLoading(true);
       setError('');
       
-      let url = `${API_BASE_URL}/api/vocabulary?level=${level}`;
+      let url = buildApiUrl(`${API_ENDPOINTS.VOCABULARY.BASE}?level=${level}`);
       if (search) {
         url += `&search=${encodeURIComponent(search)}`;
       }
       
-      const headers = {
-        'Content-Type': 'application/json',
-        ...getAuthHeaders()
-      };
-      console.log('Request headers:', headers);
+      const fetchOptions = getFetchOptions(getAuthHeaders());
+      console.log('Request headers:', fetchOptions.headers);
       console.log('Request URL:', url);
       
-      const response = await fetch(url, { headers });
+      const response = await fetch(url, fetchOptions);
       
       if (response.ok) {
         const data = await response.json();
@@ -79,14 +74,9 @@ export default function Vocabulary({ standalone = true }) {
     }
     
     try {
-      let url = `${API_BASE_URL}/api/vocabulary/suggestions?search=${encodeURIComponent(searchQuery)}&level=${filterLevel}`;
+      let url = buildApiUrl(`${API_ENDPOINTS.VOCABULARY.SUGGESTIONS}?search=${encodeURIComponent(searchQuery)}&level=${filterLevel}`);
       
-      const response = await fetch(url, {
-        headers: {
-          'Content-Type': 'application/json',
-          ...getAuthHeaders()
-        }
-      });
+      const response = await fetch(url, getFetchOptions(getAuthHeaders()));
       
       if (response.ok) {
         const data = await response.json();
@@ -109,14 +99,9 @@ export default function Vocabulary({ standalone = true }) {
     }
     
     try {
-      let url = `${API_BASE_URL}/api/vocabulary/search?search=${encodeURIComponent(searchQuery)}&level=${filterLevel}`;
+      let url = buildApiUrl(`${API_ENDPOINTS.VOCABULARY.SEARCH}?search=${encodeURIComponent(searchQuery)}&level=${filterLevel}`);
       
-      const response = await fetch(url, {
-        headers: {
-          'Content-Type': 'application/json',
-          ...getAuthHeaders()
-        }
-      });
+      const response = await fetch(url, getFetchOptions(getAuthHeaders()));
       
       if (response.ok) {
         const data = await response.json();
@@ -174,19 +159,15 @@ export default function Vocabulary({ standalone = true }) {
   // Handle adding word from search results to personal vocabulary
   const handleAddWordFromSearch = async (word, translation, level) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/vocabulary`, {
+      const response = await fetch(buildApiUrl(API_ENDPOINTS.VOCABULARY.BASE), getFetchOptions(getAuthHeaders(), {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...getAuthHeaders()
-        },
         body: JSON.stringify({
           word: word,
           translation: translation,
           level: level,
           added_from: 'search'
         })
-      });
+      }));
       
       if (response.ok) {
         // Refresh the vocabulary list and update search results
@@ -213,13 +194,9 @@ export default function Vocabulary({ standalone = true }) {
     setShowDeleteModal(false);
     
     try {
-      const response = await fetch(`${API_BASE_URL}/api/vocabulary/${encodeURIComponent(word)}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          ...getAuthHeaders()
-        }
-      });
+      const response = await fetch(buildApiUrl(API_ENDPOINTS.VOCABULARY.DELETE(word)), getFetchOptions(getAuthHeaders(), {
+        method: 'DELETE'
+      }));
       
       if (response.ok) {
         // Refresh the vocabulary list after deletion
@@ -242,14 +219,10 @@ export default function Vocabulary({ standalone = true }) {
   // Handle saving notes
   const handleSaveNotes = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/vocabulary/${encodeURIComponent(selectedWord.word)}/notes`, {
+      const response = await fetch(buildApiUrl(API_ENDPOINTS.VOCABULARY.NOTES(selectedWord.word)), getFetchOptions(getAuthHeaders(), {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          ...getAuthHeaders()
-        },
         body: JSON.stringify({ notes: selectedWord.notes })
-      });
+      }));
       
       if (response.ok) {
         setShowNotesModal(false);
@@ -317,13 +290,9 @@ export default function Vocabulary({ standalone = true }) {
   // Track word review
   const handleReviewWord = async (word) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/vocabulary/${encodeURIComponent(word)}/review`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...getAuthHeaders()
-        }
-      });
+      const response = await fetch(buildApiUrl(API_ENDPOINTS.VOCABULARY.REVIEW(word)), getFetchOptions(getAuthHeaders(), {
+        method: 'POST'
+      }));
       
       if (response.ok) {
         // Optionally refresh the list to show updated review time
